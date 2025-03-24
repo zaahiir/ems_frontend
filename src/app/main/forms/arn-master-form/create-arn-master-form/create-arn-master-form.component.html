@@ -1,0 +1,97 @@
+<c-row ngPreserveWhitespaces>
+  <c-col xs="12">
+    <c-card class="mb-4">
+      <c-card-header>
+        <strong>New ARN Entry Form</strong>
+      </c-card-header>
+      <c-card-body>
+        <form #customStylesForm="ngForm"
+          (ngSubmit)="onSubmit()"
+          [formGroup]="arnEntryForm"
+          [validated]="customStylesValidated"
+          cForm
+          class="row g-3 needs-validation"
+        >
+          <c-col [cFormFloating]="true" md="6">
+            <input cFormControl id="validationCustom01" formControlName="arnNumber" required type="text" placeholder="ARN" />
+            <label cLabel for="validationCustom01" class="ms-2">ARN</label>
+            <c-form-feedback [valid]="false" *ngIf="f['arnNumber'].errors && (f['arnNumber'].touched || submitted)">Please provide an ARN.</c-form-feedback>
+          </c-col>
+          
+          <c-col [cFormFloating]="true" md="6">
+            <input cFormControl id="validationCustom02" formControlName="arnName" required type="text" placeholder="Name" />
+            <label cLabel for="validationCustom02" class="ms-2">Name</label>
+            <c-form-feedback [valid]="false" *ngIf="f['arnName'].errors && (f['arnName'].touched || submitted)">Please provide a Name.</c-form-feedback>
+          </c-col>
+
+          <c-col md="6">
+            <c-input-group class="d-flex">
+              <c-col [cFormFloating]="true" class="w-25">
+                <input cFormControl id="arnCountryCode" formControlName="arnCountryCode" readonly type="text" placeholder="Country Code" />
+                <label cLabel for="arnCountryCode" class="ms-2">Country Code</label>
+              </c-col>
+              <c-col [cFormFloating]="true" class="w-75">
+                <input cFormControl id="validationCustom03" formControlName="arnMobile" required type="text" placeholder="Mobile" />
+                <label cLabel for="validationCustom03" class="ms-2">Mobile</label>
+              </c-col>
+            </c-input-group>
+            <c-form-feedback [valid]="false" *ngIf="f['arnMobile'].errors && (f['arnMobile'].touched || submitted)">Please provide a Mobile Number.</c-form-feedback>
+          </c-col>
+          
+          <c-col [cFormFloating]="true" md="6">
+            <input cFormControl id="validationCustom04" formControlName="arnAddress" required type="text" placeholder="Address" />
+            <label cLabel for="validationCustom04" class="ms-2">Address</label>
+            <c-form-feedback [valid]="false" *ngIf="f['arnAddress'].errors && (f['arnAddress'].touched || submitted)">Please provide an Address.</c-form-feedback>
+          </c-col>
+          
+          <c-col [cFormFloating]="true" md="6">
+            <select cSelect cFormControl id="validationCustom05" formControlName="arnState" required>
+              <option value="" disabled selected>Select State</option>
+              <option [value]="item.id" *ngFor="let item of states">{{ item.stateName }}</option>
+            </select>
+            <label cLabel for="validationCustom05" class="ms-2">State</label>
+            <c-form-feedback [valid]="false" *ngIf="f['arnState'].errors && (f['arnState'].touched || submitted)">Please provide State.</c-form-feedback>
+          </c-col>
+
+          <c-col [cFormFloating]="true" md="6">
+            <input cFormControl id="validationCustom06" formControlName="arnCountry" readonly type="text" placeholder="Country" />
+            <label cLabel for="validationCustom06" class="ms-2">Country</label>
+          </c-col>
+          
+          <c-col [cFormFloating]="true" md="6">
+            <input cFormControl id="validationCustom07" formControlName="arnPinCode" required type="text" placeholder="Pincode" />
+            <label cLabel for="validationCustom07" class="ms-2">Pincode</label>
+            <c-form-feedback [valid]="false" *ngIf="f['arnPinCode'].errors && (f['arnPinCode'].touched || submitted)">Please provide a Pincode</c-form-feedback>
+          </c-col>
+          
+          <c-col [cFormFloating]="true" md="6">
+            <input cFormControl id="validationCustom08" formControlName="arnEmail" required type="text" placeholder="Email" />
+            <label cLabel for="validationCustom08" class="ms-2">Email</label>
+            <c-form-feedback [valid]="false" *ngIf="f['arnEmail'].errors && (f['arnEmail'].touched || submitted)">Please provide an Email.</c-form-feedback>
+          </c-col>
+          
+          <c-col [cFormFloating]="true" md="6">
+            <input cFormControl id="validationCustom09" formControlName="arnEuin" required type="text" placeholder="EUIN" />
+            <label cLabel for="validationCustom09" class="ms-2">EUIN</label>
+            <c-form-feedback [valid]="false" *ngIf="f['arnEuin'].errors && (f['arnEuin'].touched || submitted)">Please provide an EVIN.</c-form-feedback>
+          </c-col>
+          
+          <c-col [cFormFloating]="true" md="6">
+            <input cFormControl id="validationCustom10" formControlName="arnGstNo" required type="text" placeholder="GST No" />
+            <label cLabel for="validationCustom10" class="ms-2">GST No</label>
+            <c-form-feedback [valid]="false" *ngIf="f['arnGstNo'].errors && (f['arnGstNo'].touched || submitted)">Please provide a GST No.</c-form-feedback>
+          </c-col>
+          
+          <c-col xs="12">
+            <button cButton class="me-1" color="primary" type="submit">
+              Save
+            </button>
+            <button (click)="onReset()" cButton color="secondary" type="reset">
+              Reset
+            </button>
+          </c-col>
+        </form>
+      </c-card-body>
+    </c-card>
+  </c-col>
+</c-row>

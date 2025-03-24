@@ -1,0 +1,107 @@
+<c-row ngPreserveWhitespaces>
+  <c-col xs="12">
+    <c-card class="mb-4">
+      <c-card-header>
+        <strong>New Courier Entry Form</strong>
+      </c-card-header>
+      <c-card-body> 
+        <form #customStylesForm="ngForm"
+              [formGroup]="courierForm"
+              (ngSubmit)="onSubmit()"
+              [validated]="customStylesValidated"
+              cForm
+              class="row g-3 needs-validation">
+
+            <c-col [cFormFloating]="true" md="6">
+              <select cSelect cFormControl id="validationCustom01" formControlName="courierClientName" required>
+                <option value="" disabled selected>Select a Client Name</option>
+                <option [value]="client.id" *ngFor="let client of clients">{{ client.clientName }}</option>
+              </select>
+              <label cLabel for="validationCustom01" class="ms-2">Client Name</label>
+              <c-form-feedback [valid]="false" *ngIf="f['courierClientName'].errors && (f['courierClientName'].touched || submitted)">Please select a Client Name.</c-form-feedback>
+            </c-col>
+
+          <c-col [cFormFloating]="true" md="6">
+            <input cFormControl id="validationCustom02" 
+                   formControlName="courierClientAddress"
+                   required
+                   type="text"
+                   placeholder="Address" />
+            <label cLabel for="validationCustom02" class="ms-2">Address</label>
+            <c-form-feedback [valid]="false" 
+                             *ngIf="f['courierClientAddress'].errors && (f['courierClientAddress'].touched || submitted)">
+              Please provide an Address.
+            </c-form-feedback>
+          </c-col>
+
+          <c-col md="6">
+            <c-input-group class="d-flex">
+              <c-col [cFormFloating]="true" class="w-25">
+                <select cSelect id="courierCountryCode" formControlName="courierCountryCode" required>
+                  <option value="" disabled selected>Select Country Code</option>
+                  <option [value]="country.id" *ngFor="let country of countries">
+                    {{ country.dailCode }}
+                  </option>
+                </select>
+                <label for="courierCountryCode">Country Code</label>
+              </c-col>
+              <c-col [cFormFloating]="true" class="w-75">
+                <input cFormControl id="courierMobileNumber" 
+                       formControlName="courierMobileNumber"
+                       required
+                       type="text"
+                       placeholder="Mobile Number" />
+                <label cLabel for="courierMobileNumber" class="ms-2">Mobile Number</label>
+              </c-col>
+            </c-input-group>
+            <c-form-feedback [valid]="false" 
+                             *ngIf="f['courierCountryCode'].errors && (f['courierCountryCode'].touched || submitted)">
+              Please select a Country Code.
+            </c-form-feedback>
+            <c-form-feedback [valid]="false" 
+                             *ngIf="f['courierMobileNumber'].errors && (f['courierMobileNumber'].touched || submitted)">
+              Please provide a Mobile Number.
+            </c-form-feedback>
+          </c-col>
+
+          <c-col [cFormFloating]="true" md="6">
+            <input cFormControl id="validationCustom04" 
+                   formControlName="courierEmail"
+                   required
+                   type="email"
+                   placeholder="Email" />
+            <label cLabel for="validationCustom04" class="ms-2">Email</label>
+            <c-form-feedback [valid]="false" 
+                             *ngIf="f['courierEmail'].errors && (f['courierEmail'].touched || submitted)">
+              Please provide an Email.
+            </c-form-feedback>
+          </c-col>
+
+          <c-col>
+          <label cLabel for="validationCustom05">Fund File</label>
+          <input cFormControl
+                 id="validationCustom05" formControlName="courierFile"
+                 required
+                 multiple
+                 type="file"
+                 (change)="onFileChange($event)"
+                 accept=".pdf,.doc,.docx,.jpeg,.jpg,.xls,.xlsx,.csv,.txt"
+          />
+          <c-form-feedback [valid]="false" *ngFor="let error of fileErrors">
+            {{ error  }}
+          </c-form-feedback>
+          </c-col>
+
+          <c-col xs="12">
+            <button cButton class="me-1" color="primary" type="submit">
+              Save
+            </button>
+            <button (click)="onReset()" cButton color="secondary" type="reset">
+              Reset
+            </button>
+          </c-col>
+        </form>
+      </c-card-body>
+    </c-card>
+  </c-col>
+</c-row>

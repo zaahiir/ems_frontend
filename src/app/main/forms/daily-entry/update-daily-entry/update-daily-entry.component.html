@@ -1,0 +1,127 @@
+<c-row ngPreserveWhitespaces>
+  <c-col xs="12">
+    <c-card class="mb-4">
+      <c-card-header>
+        <strong>Update Daily Entry</strong>
+      </c-card-header>
+      <c-card-body>
+        <form #customStylesForm="ngForm"
+          (ngSubmit)="onSubmit()"
+          [formGroup]="dailyEntryForm"
+          [validated]="customStylesValidated"
+          cForm
+          class="row g-3 needs-validation"
+        >
+          <c-col md="3">
+            <c-input-group>
+              <input id="searchTerm" formControlName="searchTerm" type="text" cFormControl placeholder="Search by PAN/Mobile"/>
+              <button cButton color="secondary" id="button-addon2" type="button" variant="outline" (click)="searchClient()">
+                Search
+              </button>
+            </c-input-group>
+          </c-col> 
+          
+          <c-col [cFormFloating]="true" md="6">
+          </c-col>    
+
+          <c-col [cFormFloating]="true" md="6">
+            <input cFormControl id="applicationDate" formControlName="applicationDate" required type="date" placeholder="Application Date" />
+            <label cLabel for="applicationDate" class="ms-2">Application Date</label>
+          </c-col>
+          
+          <c-col [cFormFloating]="true" md="6">
+            <input cFormControl id="clientPanNumber" formControlName="clientPanNumber" required type="text" placeholder="Client PAN" readonly />
+            <label cLabel for="clientPanNumber" class="ms-2">Client PAN</label>
+          </c-col>       
+          
+          <c-col [cFormFloating]="true" md="6">
+            <input cFormControl id="clientName" formControlName="clientName" required type="text" placeholder="Client Name" readonly />
+            <label cLabel for="clientName" class="ms-2">Client Name</label>
+          </c-col>
+
+          <c-col md="6">
+            <c-input-group class="d-flex">
+              <c-col [cFormFloating]="true" class="w-25">
+                <input cFormControl id="clientPhoneCountryCode" formControlName="clientPhoneCountryCode" type="text" placeholder="Code" readonly />
+                <label for="clientPhoneCountryCode">Country Code</label>
+              </c-col>
+              <c-col [cFormFloating]="true" class="w-75">
+                <input cFormControl id="clientMobileNumber" formControlName="clientMobileNumber" required type="text" placeholder="Mobile Number" readonly />
+                <label cLabel for="clientMobileNumber" class="ms-2">Mobile Number</label>
+              </c-col>
+            </c-input-group>
+          </c-col>
+          
+          <c-col [cFormFloating]="true" md="6">
+            <input cFormControl id="clientFolioNumber" formControlName="clientFolioNumber" type="text" placeholder="Client Folio Number" />
+            <label cLabel for="clientFolioNumber" class="ms-2">Client Folio Number</label>
+            <c-form-feedback [valid]="false" *ngIf="f['clientFolioNumber'].errors && (f['clientFolioNumber'].touched || submitted)">Please provide a Folio Number.</c-form-feedback>
+          </c-col>
+          
+          <c-col [cFormFloating]="true" md="6">
+            <select cSelect id="fundHouse" formControlName="fundHouse" required>
+              <option value="" disabled selected>Select Fund House</option>
+              <option [value]="amc.id" *ngFor="let amc of amcList">{{ amc.amcName }}</option>
+            </select>
+            <label cLabel for="fundHouse" class="ms-2">Fund House</label>
+            <c-form-feedback [valid]="false" *ngIf="f['fundHouse'].errors && (f['fundHouse'].touched || submitted)">Please select a Fund House.</c-form-feedback>
+          </c-col>
+          
+          <c-col [cFormFloating]="true" md="6">
+            <select cSelect id="fundName" formControlName="fundName" required>
+              <option value="" disabled selected>Select Fund Name</option>
+              <option [value]="fund.id" *ngFor="let fund of fundList">{{ fund.fundName }}</option>
+            </select>
+            <label cLabel for="fundName" class="ms-2">Fund Name</label>
+            <c-form-feedback [valid]="false" *ngIf="f['fundName'].errors && (f['fundName'].touched || submitted)">Please select a Fund Name.</c-form-feedback>
+          </c-col>
+          
+          <c-col [cFormFloating]="true" md="6">
+            <input cFormControl id="amount" formControlName="amount" required type="number" placeholder="Amount" />
+            <label cLabel for="amount" class="ms-2">Amount</label>
+            <c-form-feedback [valid]="false" *ngIf="f['amount'].errors && (f['amount'].touched || submitted)">Please provide a valid Amount.</c-form-feedback>
+          </c-col>
+          
+          <c-col [cFormFloating]="true" md="6">
+            <input cFormControl id="clientChequeNumber" formControlName="clientChequeNumber" type="text" placeholder="Client Cheque Number" />
+            <label cLabel for="clientChequeNumber" class="ms-2">Client Cheque Number</label>
+            <c-form-feedback [valid]="false" *ngIf="f['clientChequeNumber'].errors && (f['clientChequeNumber'].touched || submitted)">Please provide a Cheque Number.</c-form-feedback>
+          </c-col>
+
+          <c-col [cFormFloating]="true" md="6">
+            <select cSelect id="transactionType" formControlName="transactionType" required>
+              <option value="" disabled selected>Select Transaction Type</option>
+              <option [value]="type.id" *ngFor="let type of issueTypes">{{ type.issueTypeName }}</option>
+            </select>
+            <label cLabel for="transactionType" class="ms-2">Transaction Type</label>
+            <c-form-feedback [valid]="false" *ngIf="f['transactionType'].errors && (f['transactionType'].touched || submitted)">Please select a Transaction Type.</c-form-feedback>
+          </c-col>
+          
+          <c-col [cFormFloating]="true" md="6">
+            <input cFormControl id="sipDate" formControlName="sipDate" type="date" placeholder="SIP Date" required />
+            <label cLabel for="sipDate" class="ms-2">SIP Date</label>
+          </c-col>
+
+          <c-col [cFormFloating]="true" md="6">
+            <input cFormControl id="staffName" formControlName="staffName" required type="text" placeholder="Staff Name" readonly />
+            <label cLabel for="staffName" class="ms-2">Staff Name</label>
+          </c-col>
+          
+          <c-col [cFormFloating]="true" md="12">
+            <textarea cFormControl id="transactionAddDetail" formControlName="transactionAddDetail" rows="3" placeholder="Transaction Add Detail" required></textarea>
+            <label cLabel for="transactionAddDetail" class="ms-2">Transaction Add Detail</label>
+          </c-col>
+
+          <c-col xs="12">
+            <button cButton class="me-1" color="primary" type="submit">
+              Update
+            </button>
+            <button (click)="onCancel()" cButton color="secondary">
+              Cancel
+            </button>
+          </c-col>
+        </form>
+      </c-card-body>
+    </c-card>
+  </c-col>
+</c-row>

@@ -1,0 +1,75 @@
+<c-row ngPreserveWhitespaces>
+  <c-col xs="12">
+    <c-card class="mb-4">
+      <c-card-header>
+        <strong>New Form Entry</strong>
+      </c-card-header>
+      <c-card-body>
+        <form #customStylesForm="ngForm"
+              [formGroup]="formCreateForm"
+              (ngSubmit)="onSubmit()"
+              [validated]="customStylesValidated"
+              cForm
+              class="row g-3 needs-validation">
+          
+          <c-col [cFormFloating]="true" md="6">
+            <select cSelect cFormControl id="validationCustom01" formControlName="formsAmcName" required>
+              <option value="" disabled>Select an AMC</option>
+              <option [value]="item.id" *ngFor="let item of amc">{{ item.amcName }}</option>
+            </select>
+            <label cLabel for="validationCustom01" class="ms-2">AMC Name</label>
+            <c-form-feedback [valid]="false" 
+                             *ngIf="f['formsAmcName'].errors && (f['formsAmcName'].touched || submitted)">
+              Please select an AMC.
+            </c-form-feedback>
+          </c-col>
+
+          <c-col [cFormFloating]="true" md="6">
+            <select cSelect cFormControl id="validationCustom02" formControlName="formsType" required>
+              <option value="" disabled>Select a Form Type</option>
+              <option [value]="item.id" *ngFor="let item of formTypes">{{ item.formTypeName }}</option>
+            </select>
+            <label cLabel for="validationCustom02" class="ms-2">Form Type</label>
+            <c-form-feedback [valid]="false" 
+                             *ngIf="f['formsType'].errors && (f['formsType'].touched || submitted)">
+              Please select a Form Type.
+            </c-form-feedback>
+          </c-col>
+
+          <c-col [cFormFloating]="true" md="12">
+            <textarea cFormControl id="validationCustom03" formControlName="formsDescription" rows="3" required></textarea>
+            <label cLabel for="validationCustom03" class="ms-2">Description</label>
+            <c-form-feedback [valid]="false" 
+                             *ngIf="f['formsDescription'].errors && (f['formsDescription'].touched || submitted)">
+              Please provide a Description.
+            </c-form-feedback>
+          </c-col>
+
+          <c-col>
+            <label cLabel for="validationCustom04">File Upload</label>
+            <input cFormControl
+                   id="validationCustom04" 
+                   formControlName="formsFile"
+                   required
+                   type="file"
+                   (change)="onFileChange($event)"
+                   accept=".jpeg,.jpg,.pdf,.docx,.xlsx,.csv,.txt"
+            />
+            <c-form-feedback [valid]="false" *ngIf="fileError && (submitted || selectedFile)">
+              {{ fileError }}
+            </c-form-feedback>
+          </c-col>
+
+          <c-col xs="12">
+            <button cButton class="me-1" color="primary" type="submit">
+              Save
+            </button>
+            <button (click)="onReset()" cButton color="secondary" type="reset">
+              Reset
+            </button>
+          </c-col>
+        </form>
+      </c-card-body>
+    </c-card>
+  </c-col>
+</c-row>

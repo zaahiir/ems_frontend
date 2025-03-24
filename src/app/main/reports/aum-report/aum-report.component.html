@@ -1,0 +1,99 @@
+<c-col xs="12">
+    <c-card class="mb-4">
+      <c-card-body>
+        <form #customStylesForm="ngForm"
+        (ngSubmit)="onSubmit1()"
+        [validated]="customStylesValidated"
+        cForm
+        class="row g-3 needs-validation"
+      >
+      <c-col md="4">
+      <label cLabel for="validationCustom01">AUM</label>
+      <select cSelect id="validationCustom01" required>
+        <option value="">Choose...</option>
+        <option>...</option>
+      </select>
+      <c-form-feedback [valid]="false">Please select an AUM.</c-form-feedback>
+      </c-col>
+      <c-col md="4">
+      <label cLabel for="validationCustom02">From</label>
+      <input cFormControl id="validationCustom02" required type="date" />
+      <c-form-feedback [valid]="false">Please select a From Date.</c-form-feedback>
+      </c-col>
+      <c-col md="4">
+      <label cLabel for="validationCustom03">To</label>
+      <input cFormControl id="validationCustom03" required type="date" />
+      <c-form-feedback [valid]="false">Please select a To Date.</c-form-feedback>
+      </c-col>
+      <c-col xs="12">
+      <button cButton color="primary" type="submit">
+        Get Report
+      </button>
+      </c-col>
+      </form>
+      </c-card-body>
+    </c-card>
+</c-col>
+<c-row ngPreserveWhitespaces>
+    <c-col xs="12">
+      <c-card class="mb-4">
+        <c-card-body>
+          <c-col md="3" class="mb-4 flex justify-content-md-end">
+          <input cFormControl id="validationCustom02" required type="search" placeholder="search" />
+          </c-col>
+          <table [hover]="true" [striped]="true" [bordered]="true" cTable>
+            <thead>
+            <tr>
+              <th scope="col">Month</th>
+              <th scope="col">AMC</th>
+              <th scope="col">AUM</th>
+              <th scope="col">Commission</th>
+              <th scope="col">%</th> 
+            </tr>
+            </thead>
+            <tbody>
+            <tr>
+              <th>January</th>
+              <td>Mark</td>
+              <td>Otto</td>
+              <td>Otto</td>
+              <td>Otto</td>
+            </tr>
+            <tr>
+              <th>Feb</th>
+              <td>Jacob</td>
+              <td>Thornton</td>
+              <td>Thornton</td>
+              <td>Thornton</td>
+            </tr>
+            <tr>
+              <th>March</th>
+              <td>Thornton</td>
+              <td>Thornton</td>
+              <td>Thornton</td>
+              <td>Thornton</td>
+            </tr>
+            </tbody>
+          </table>
+          <c-pagination aria-label="Page navigation example">
+            <c-page-item>
+              <a cPageLink [routerLink]="[]">Previous</a>
+            </c-page-item>
+            <c-page-item>
+              <a cPageLink [routerLink]="[]">1</a>
+            </c-page-item>
+            <c-page-item>
+              <a cPageLink [routerLink]="[]">2</a>
+            </c-page-item>
+            <c-page-item>
+              <a cPageLink [routerLink]="[]">3</a>
+            </c-page-item>
+            <c-page-item>
+              <a cPageLink [routerLink]="[]">Next</a>
+            </c-page-item>
+          </c-pagination>
+        </c-card-body>
+      </c-card>
+    </c-col>
+</c-row>
+  

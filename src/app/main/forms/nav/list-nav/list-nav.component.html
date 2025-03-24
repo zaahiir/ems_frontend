@@ -1,0 +1,99 @@
+
+<c-col xs="12">
+  <c-card class="mb-4">
+    <c-card-body>
+      <form cForm class="row g-3">
+        <!-- Mode Selection -->
+        <div class="d-grid gap-2 d-md-flex justify-content-md" *ngIf="!activeMode">
+          <a cButton color="primary" role="button" (click)="activateMode('single')">Get Nav Data</a>
+          <a cButton color="primary" role="button" (click)="activateMode('historic')">Get Historic Nav Data</a>
+        </div>
+
+        <!-- Single Date Mode -->
+        <div class="d-grid gap-2 d-md-flex justify-content-md" *ngIf="activeMode === 'single'">
+          <input cFormControl type="date" [(ngModel)]="singleDate" name="singleDate">
+          <a cButton 
+             color="primary" 
+             role="button" 
+             (click)="submitSingleDate()"
+             [disabled]="isLoading">
+            <c-spinner *ngIf="isLoading" aria-hidden="true" size="sm"></c-spinner>
+            <span *ngIf="!isLoading">Submit</span>
+          </a>
+          <a cButton color="btn-transparent" role="button" class="btn-sm text-secondary border-0 mt-2 py-0" (click)="resetMode()" [cTooltip]="tooltipBackText" cTooltipPlacement="top">
+            <svg [cIcon]="icons.cilXCircle" size="xl" title="List Icon"></svg>
+          </a>
+        </div>
+
+        <!-- Historic Date Range Mode -->
+        <div class="d-grid gap-2 d-md-flex justify-content-md" *ngIf="activeMode === 'historic'">
+          <input cFormControl type="date" [(ngModel)]="startDate" name="startDate" placeholder="Start Date">
+          <input cFormControl type="date" [(ngModel)]="endDate" name="endDate" placeholder="End Date">
+          <a cButton 
+             color="primary" 
+             role="button" 
+             (click)="submitDateRange()"
+             [disabled]="isLoading">
+            <c-spinner *ngIf="isLoading" aria-hidden="true" size="sm"></c-spinner>
+            <span *ngIf="!isLoading">Submit</span>
+          </a>
+          <a cButton color="btn-transparent" role="button" class="btn-sm text-secondary border-0 mt-2 py-0" (click)="resetMode()" [cTooltip]="tooltipBackText" cTooltipPlacement="top">
+            <svg [cIcon]="icons.cilXCircle" size="xl" title="List Icon"></svg>
+          </a>
+        </div>
+      </form>
+    </c-card-body>
+  </c-card>
+</c-col>
+
+
+<c-row ngPreserveWhitespaces>
+  <c-col xs="12">
+    <c-card class="mb-4">
+      <c-card-body>
+        <c-col md="3" class="mb-4 flex justify-content-md-end">
+          <input cFormControl id="validationCustom09" 
+            (input)="search($any($event.target).value)"
+            type="search" 
+            placeholder="search" />
+        </c-col>
+        <table [hover]="true" [striped]="true" [bordered]="true" cTable>
+          <thead>
+            <tr>
+              <th scope="col">S.No</th>
+              <th scope="col">AMC Name</th>
+              <th scope="col">Fund Name</th>
+              <th scope="col">Nav</th>
+              <th scope="col">Date</th>
+              <th scope="col">Action</th>  
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let aum of navInterfaceList; let i = index">
+              <th>{{ (currentPage - 1) * itemsPerPage + i + 1 }}</th>
+              <td>{{ aum.amcName }}</td>
+              <td>{{ aum.navFundName }}</td>
+              <td>{{ aum.nav }}</td>
+              <td>{{ aum.navDate }}</td>
+              <td>
+                <a cButton [routerLink]="['/forms/nav/update',aum.id]" color="btn-transparent" role="button" class="btn-sm text-primary border-0  py-0" [cTooltip]="tooltipEditText" cTooltipPlacement="top"><svg [cIcon]="icons.cilPen" size="xl" title="List Icon"></svg></a>
+                <a cButton (click)="deleteAum(aum.id)" color="btn-transparent" role="button" class="btn-sm text-danger border-0  py-0" [cTooltip]="tooltipDeleteText" cTooltipPlacement="top"><svg [cIcon]="icons.cilTrash" width="25" title="List Icon"></svg></a>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        <c-pagination aria-label="Page navigation example" *ngIf="totalItems > itemsPerPage">
+          <c-page-item>
+            <a cPageLink (click)="previousPage()" [attr.aria-disabled]="currentPage === 1">Previous</a>
+          </c-page-item>
+          <c-page-item>
+            <a cPageLink>{{ currentPage }} / {{ totalPages }}</a>
+          </c-page-item>
+          <c-page-item>
+            <a cPageLink (click)="nextPage()" [attr.aria-disabled]="!nextCursor">Next</a>
+          </c-page-item>
+        </c-pagination>
+      </c-card-body>
+    </c-card>
+  </c-col>
+</c-row>

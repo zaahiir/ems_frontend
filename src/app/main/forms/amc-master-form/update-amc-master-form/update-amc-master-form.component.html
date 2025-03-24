@@ -1,0 +1,75 @@
+<c-row ngPreserveWhitespaces>
+  <c-col xs="12">
+    <c-card class="mb-4">
+      <c-card-header>
+        <strong>Update AMC Entry Form</strong>
+      </c-card-header>
+      <c-card-body>
+        <form #customStylesForm="ngForm"
+          [formGroup]="amcForm"
+          (ngSubmit)="onSubmit()"
+          [validated]="customStylesValidated"
+          cForm
+          class="row g-3 needs-validation"
+        >
+          
+          <c-col [cFormFloating]="true" md="6">
+            <input cFormControl id="validationCustom02" formControlName="amcName" required type="text" placeholder="AMC Name" />
+            <label cLabel for="validationCustom02" class="ms-2">AMC Name</label>
+            <c-form-feedback [valid]="false" *ngIf="f['amcName'].errors && f['amcName'].touched">Please provide an AMC Name.</c-form-feedback>
+          </c-col>
+          
+          <c-col [cFormFloating]="true" md="6">
+            <input cFormControl id="validationCustom04" formControlName="amcAddress" required type="text" placeholder="Address" />
+            <label cLabel for="validationCustom04" class="ms-2">Address</label>
+            <c-form-feedback [valid]="false" *ngIf="f['amcAddress'].errors && f['amcAddress'].touched">Please provide an address.</c-form-feedback>
+          </c-col>
+          
+          <c-col [cFormFloating]="true" md="6">
+            <select cSelect id="validationCustom05" formControlName="amcState">
+              <option value="null">Select State</option>
+              <option [value]="state.id" *ngFor="let state of states">{{state.stateName}}</option>
+            </select>
+            <label cLabel for="validationCustom05" class="ms-2">State</label>
+            <c-form-feedback [valid]="false" *ngIf="f['amcState'].errors && f['amcState'].touched">Please select a State.</c-form-feedback>
+          </c-col>
+
+          <c-col [cFormFloating]="true" md="6">
+            <input cFormControl id="validationCustom06" formControlName="amcCountry" readonly type="text" placeholder="Country" />
+            <label cLabel for="validationCustom06" class="ms-2">Country</label>
+          </c-col>
+          
+          <c-col [cFormFloating]="true" md="6">
+            <input cFormControl id="validationCustom07" formControlName="amcPinCode" required type="text" placeholder="Pincode" />
+            <label cLabel for="validationCustom07" class="ms-2">Pincode</label>
+            <c-form-feedback [valid]="false" *ngIf="f['amcPinCode'].errors && f['amcPinCode'].touched">Please provide a Pincode.</c-form-feedback>
+          </c-col>
+          
+          <c-col [cFormFloating]="true" md="6">
+            <input cFormControl id="validationCustom08" formControlName="amcGstNo" required type="text" placeholder="GST No" />
+            <label cLabel for="validationCustom08" class="ms-2">GST No</label>
+            <c-form-feedback [valid]="false" *ngIf="f['amcGstNo'].errors && f['amcGstNo'].touched">Please provide a GST No.</c-form-feedback>
+          </c-col>
+          
+          <c-col [cFormFloating]="true" md="6">
+            <select cSelect cFormControl id="validationCustom09" formControlName="amcGstType">
+              <option value="null">Select GST Type</option>
+              <option [value]="item.id" *ngFor="let item of gstTypes">{{ item.gstTypeName }}</option>
+            </select>
+            <label cLabel for="validationCustom09" class="ms-2">GST Type</label>
+            <c-form-feedback [valid]="false" *ngIf="f['amcGstType'].errors && (f['amcGstType'].touched || submitted)">Please select a GST Type.</c-form-feedback>
+          </c-col>
+          
+          <c-col xs="12">
+            <button cButton class="me-1" color="primary" type="submit">
+              Update
+            </button>
+            <button cButton color="secondary" (click)="onCancel()">
+              Cancel
+            </button>
+          </c-col>
+        </form>
+      </c-card-body>
+    </c-card>
+  </c-col>
+</c-row>

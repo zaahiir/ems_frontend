@@ -1,0 +1,62 @@
+<c-col xs="12">
+  <c-card class="mb-4">
+    <c-card-body>
+      <form cForm class="row g-3">
+        <div class="col-auto">
+          <a cButton [routerLink]="['/forms/dailyEntry/add']" color="primary" role="button">Create New Daily Entry</a>
+        </div>
+      </form>
+    </c-card-body>
+  </c-card>
+</c-col>
+<c-row ngPreserveWhitespaces>
+  <c-col xs="12">
+    <c-card class="mb-4">
+      <c-card-body>
+        <c-col md="3" class="mb-4 flex justify-content-md-end">
+          <input cFormControl id="validationCustom09" 
+                 (input)="search($event)"
+                 [(ngModel)]="searchTerm"
+                 type="search" 
+                 placeholder="search" />
+        </c-col>
+        <table [hover]="true" [striped]="true" [bordered]="true" cTable>
+          <thead>
+            <tr>
+              <th scope="col">S.No</th>
+              <th scope="col">Application Date</th>
+              <th scope="col">Client Name</th>
+              <th scope="col">Fund Name</th>
+              <th scope="col">Issue Type</th>
+              <th scope="col">Action</th>  
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let entry of dailyEntryList; let i = index">
+              <th>{{ (currentPage - 1) * itemsPerPage + i + 1 }}</th>
+              <td>{{ entry.applicationDate | date:'yyyy-MM-dd' }}</td>
+              <td>{{ entry.dailyEntryClientName }}</td>
+              <td>{{ entry.dailyEntryFundName }}</td>
+              <td>{{ entry.dailyEntryIssueType }}</td>
+              <td>
+                <a cButton [routerLink]="['/forms/dailyEntry/update', entry.id]" color="btn-transparent" role="button" class="btn-sm text-primary border-0 py-0" [cTooltip]="tooltipEditText" cTooltipPlacement="top"><svg [cIcon]="icons.cilPen" size="xl" title="Edit Icon"></svg></a>
+                <a cButton (click)="deleteDailyEntry(entry.id)" color="btn-transparent" role="button" class="btn-sm text-danger border-0 py-0" [cTooltip]="tooltipDeleteText" cTooltipPlacement="top"><svg [cIcon]="icons.cilTrash" width="25" title="Delete Icon"></svg></a>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        <c-pagination aria-label="Page navigation" *ngIf="totalItems > itemsPerPage">
+          <c-page-item>
+            <a cPageLink (click)="previousPage()" [attr.aria-disabled]="currentPage === 1">Previous</a>
+          </c-page-item>
+          <c-page-item>
+            <a cPageLink>{{ currentPage }} / {{ totalPages }}</a>
+          </c-page-item>
+          <c-page-item>
+            <a cPageLink (click)="nextPage()" [attr.aria-disabled]="!nextCursor">Next</a>
+          </c-page-item>
+        </c-pagination>
+      </c-card-body>
+    </c-card>
+  </c-col>
+</c-row>

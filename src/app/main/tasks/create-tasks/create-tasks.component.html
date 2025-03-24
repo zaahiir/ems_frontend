@@ -1,0 +1,93 @@
+<c-row ngPreserveWhitespaces>
+  <c-col xs="12">
+    <c-card class="mb-4">
+      <c-card-header>
+        <strong>Create Task</strong>
+      </c-card-header>
+      <c-card-body>
+        <form #customStylesForm="ngForm"
+              [formGroup]="taskEntryForm"
+              (ngSubmit)="onSubmit()"
+              [validated]="customStylesValidated"
+              cForm
+              class="row g-3 needs-validation">
+          
+          <c-col [cFormFloating]="true" md="6">
+            <input cFormControl id="validationCustom01" formControlName="taskTitle" required type="text" placeholder="Task Title" />
+            <label cLabel for="validationCustom01" class="ms-2">Task Title</label>
+            <c-form-feedback [valid]="false" 
+                             *ngIf="f['taskTitle'].errors && (f['taskTitle'].touched || submitted)">
+              Please provide a Task Title.
+            </c-form-feedback>
+          </c-col>
+
+          <c-col [cFormFloating]="true" md="6">
+            <select cSelect cFormControl id="validationCustom02" formControlName="taskClient" required>
+              <option value="" disabled>Select a Client</option>
+              <option [value]="item.id" *ngFor="let item of client">{{ item.clientName }}</option>
+            </select>
+            <label cLabel for="validationCustom02" class="ms-2">Client</label>
+            <c-form-feedback [valid]="false" 
+                             *ngIf="f['taskClient'].errors && (f['taskClient'].touched || submitted)">
+              Please select a Client.
+            </c-form-feedback>
+          </c-col>
+
+          <c-col [cFormFloating]="true" md="3">
+            <input cFormControl id="validationCustom03" formControlName="taskDate" required type="date" placeholder="Date" />
+            <label cLabel for="validationCustom03" class="ms-2">Date</label>
+            <c-form-feedback [valid]="false" 
+                             *ngIf="f['taskDate'].errors && (f['taskDate'].touched || submitted)">
+              Please select a Date.
+            </c-form-feedback>
+          </c-col>
+
+          <c-col [cFormFloating]="true" md="3">
+            <input cFormControl id="validationCustom04" formControlName="taskTime" required type="time" placeholder="Time" />
+            <label cLabel for="validationCustom04" class="ms-2">Time</label>
+            <c-form-feedback [valid]="false" 
+                             *ngIf="f['taskTime'].errors && (f['taskTime'].touched || submitted)">
+              Please select a Time.
+            </c-form-feedback>
+          </c-col>
+
+          <c-col [cFormFloating]="true" md="3">
+            <input cFormControl id="validationCustom05" formControlName="taskLatitude" required type="text" placeholder="Latitude" />
+            <label cLabel for="validationCustom05" class="ms-2">Latitude</label>
+            <c-form-feedback [valid]="false" 
+                             *ngIf="f['taskLatitude'].errors && (f['taskLatitude'].touched || submitted)">
+              Please provide a Latitude.
+            </c-form-feedback>
+          </c-col>
+
+          <c-col [cFormFloating]="true" md="3">
+            <input cFormControl id="validationCustom06" formControlName="taskLongtitude" required type="text" placeholder="Longitude" />
+            <label cLabel for="validationCustom06" class="ms-2">Longitude</label>
+            <c-form-feedback [valid]="false" 
+                             *ngIf="f['taskLongtitude'].errors && (f['taskLongtitude'].touched || submitted)">
+              Please provide a Longitude.
+            </c-form-feedback>
+          </c-col>
+
+          <c-col [cFormFloating]="true">
+            <textarea cFormControl id="validationCustom07" formControlName="taskDescription" rows="3" required placeholder="Description"></textarea>
+            <label cLabel for="validationCustom07" class="ms-2">Description</label>
+            <c-form-feedback [valid]="false" 
+                             *ngIf="f['taskDescription'].errors && (f['taskDescription'].touched || submitted)">
+              Please provide a Description.
+            </c-form-feedback>
+          </c-col>
+
+          <c-col xs="12">
+            <button cButton class="me-1" color="primary" type="submit">
+              Save
+            </button>
+            <button (click)="onReset()" cButton color="secondary" type="reset">
+              Reset
+            </button>
+          </c-col>
+        </form>
+      </c-card-body>
+    </c-card>
+  </c-col>
+</c-row>

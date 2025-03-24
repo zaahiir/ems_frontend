@@ -1,0 +1,74 @@
+<c-row ngPreserveWhitespaces>
+  <c-col xs="12">
+    <c-card class="mb-4">
+      <c-card-header>
+        <strong>New GST Entry Form</strong>
+      </c-card-header>
+      <c-card-body>
+        <form #customStylesForm="ngForm" 
+          [formGroup]="gstEntryForm" 
+          (ngSubmit)="onSubmit()"
+          [validated]="customStylesValidated"
+          cForm
+          class="row g-3 needs-validation"
+        >
+          <c-col [cFormFloating]="true" md="6">
+            <input cFormControl id="validationCustom01" formControlName="gstInvoiceDate" required type="date" placeholder="Invoice Date" />
+            <label cLabel for="validationCustom01" class="ms-2">Invoice Date</label>
+            <c-form-feedback [valid]="false" *ngIf="f['gstInvoiceDate'].errors && (f['gstInvoiceDate'].touched || submitted)">Please select an Invoice Date.</c-form-feedback>
+          </c-col>
+
+          <c-col [cFormFloating]="true" md="6">
+            <input cFormControl id="validationCustom02" formControlName="gstInvoiceNumber" required type="text" placeholder="Invoice Number" />
+            <label cLabel for="validationCustom02" class="ms-2">Invoice Number</label>
+            <c-form-feedback [valid]="false" *ngIf="f['gstInvoiceNumber'].errors && (f['gstInvoiceNumber'].touched || submitted)">Please provide an Invoice Number.</c-form-feedback>
+          </c-col>
+
+          <c-col [cFormFloating]="true" md="6">
+            <select cSelect cFormControl id="validationCustom03" formControlName="gstAmcName" required>
+              <option value="" disabled selected>Select an AMC</option>
+              <option [value]="item.id" *ngFor="let item of amc">{{ item.amcName }}</option>
+            </select>
+            <label cLabel for="validationCustom03" class="ms-2">AMC Name</label>
+            <c-form-feedback [valid]="false" *ngIf="f['gstAmcName'].errors && (f['gstAmcName'].touched || submitted)">Please select an AMC.</c-form-feedback>
+          </c-col>
+
+          <c-col [cFormFloating]="true" md="6">
+            <input cFormControl id="validationCustom04" formControlName="gstTotalValue" required type="number" placeholder="Total Value" />
+            <label cLabel for="validationCustom04" class="ms-2">Total Value</label>
+            <c-form-feedback [valid]="false" *ngIf="f['gstTotalValue'].errors && (f['gstTotalValue'].touched || submitted)">Please provide a Total Value.</c-form-feedback>
+          </c-col>
+
+          <c-col [cFormFloating]="true" md="6">
+            <input cFormControl id="validationCustom05" formControlName="gstTaxableValue" type="number" step="0.01" readonly placeholder="Taxable Value" />
+            <label cLabel for="validationCustom05" class="ms-2">Taxable Value</label>
+          </c-col>
+
+          <c-col [cFormFloating]="true" md="6">
+            <input cFormControl id="validationCustom06" formControlName="gstIGst" type="number" step="0.01" readonly placeholder="IGST" />
+            <label cLabel for="validationCustom06" class="ms-2">IGST</label>
+          </c-col>
+
+          <c-col [cFormFloating]="true" md="6">
+            <input cFormControl id="validationCustom07" formControlName="gstSGst" type="number" step="0.01" readonly placeholder="SGST" />
+            <label cLabel for="validationCustom07" class="ms-2">SGST</label>
+          </c-col>
+
+          <c-col [cFormFloating]="true" md="6">
+            <input cFormControl id="validationCustom08" formControlName="gstCGst" type="number" step="0.01" readonly placeholder="CGST" />
+            <label cLabel for="validationCustom08" class="ms-2">CGST</label>
+          </c-col>
+
+          <c-col xs="12">
+            <button cButton class="me-1" color="primary" type="submit">
+              Save
+            </button>
+            <button (click)="onReset()" cButton color="secondary" type="reset">
+              Reset
+            </button>
+          </c-col>
+        </form>
+      </c-card-body>
+    </c-card>
+  </c-col>
+</c-row>

@@ -1,0 +1,58 @@
+<c-row ngPreserveWhitespaces>
+  <c-col xs="12">
+    <c-card class="mb-4">
+      <c-card-header>
+        <strong>Update Nav Form</strong>
+      </c-card-header>
+      <c-card-body>
+        <form #customStylesForm="ngForm"  
+          [formGroup]="navUpdateForm"  
+          (ngSubmit)="onSubmit()"
+          [validated]="customStylesValidated"
+          cForm
+          class="row g-3 needs-validation"
+        >
+        <c-col [cFormFloating]="true" md="6">
+          <select cSelect cFormControl id="validationCustom01" formControlName="navAmcName" required>
+            <option value="" disabled selected>Select an AMC</option>
+            <option [value]="item.id" *ngFor="let item of amcs">{{ item.amcName }}</option>
+          </select>
+          <label cLabel for="validationCustom01" class="ms-2">AMC Name</label>
+          <c-form-feedback [valid]="false" *ngIf="f['navAmcName'].errors && (f['navAmcName'].touched || submitted)">Please select an AMC.</c-form-feedback>
+        </c-col>
+        
+        <c-col [cFormFloating]="true" md="6">
+          <select cSelect cFormControl id="validationCustom02" formControlName="navFundName" required>
+            <option value="" disabled selected>Select a Fund Name</option>
+            <option [value]="item.id" *ngFor="let item of funds">{{ item.fundName }}</option>
+          </select>
+          <label cLabel for="validationCustom02" class="ms-2">Fund Name</label>
+          <c-form-feedback [valid]="false" *ngIf="f['navFundName'].errors && (f['navFundName'].touched || submitted)">Please provide a Fund Name.</c-form-feedback>
+          <c-spinner *ngIf="loadingFunds" color="primary" size="sm"></c-spinner>
+        </c-col>
+
+          <c-col [cFormFloating]="true" md="6">
+            <input cFormControl id="validationCustom03" formControlName="nav" required type="number" step="0.0001" min="0" placeholder="Nav" />
+            <label cLabel for="validationCustom03" class="ms-2">Nav</label>
+            <c-form-feedback [valid]="false" *ngIf="f['nav'].errors && (f['nav'].touched || submitted)">Please provide a valid Nav.</c-form-feedback>
+          </c-col>
+
+          <c-col [cFormFloating]="true" md="6">
+            <input cFormControl id="validationCustom04" formControlName="navDate" required type="date" placeholder="Date" />
+            <label cLabel for="validationCustom04" class="ms-2">Date</label>
+            <c-form-feedback [valid]="false" *ngIf="f['navDate'].errors && (f['navDate'].touched || submitted)">Please select a date.</c-form-feedback>
+          </c-col>
+
+          <c-col xs="12">
+            <button cButton class="me-1" color="primary" type="submit" [disabled]="loading || loadingFunds">
+              Update
+            </button>
+            <button (click)="onCancel()" cButton color="secondary" [disabled]="loading">
+              Cancel
+            </button>
+          </c-col>
+        </form>
+      </c-card-body>
+    </c-card>
+  </c-col>
+</c-row>

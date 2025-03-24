@@ -1,0 +1,57 @@
+<c-row ngPreserveWhitespaces>
+  <c-col xs="12">
+    <c-card class="mb-4">
+      <c-card-header>
+        <strong>Update Commission Entry Form</strong>
+      </c-card-header>
+      <c-card-body> 
+        <form #customStylesForm="ngForm"
+          [formGroup]="commissionUpdateForm"
+          (ngSubmit)="onSubmit()"
+          [validated]="customStylesValidated"
+          cForm
+          class="row g-3 needs-validation"
+        >
+          <c-col [cFormFloating]="true" md="6">
+            <select cSelect id="validationCustom01" formControlName="commissionArnNumber" required>
+              <option value="" disabled selected>Select an ARN</option>
+              <option [value]="item.id" *ngFor="let item of arns">{{ item.arnNumber }}</option>
+            </select>
+            <label cLabel for="validationCustom01" class="ms-2">ARN</label>
+            <c-form-feedback [valid]="false" *ngIf="f['commissionArnNumber'].errors && (f['commissionArnNumber'].touched || submitted)">Please select an ARN.</c-form-feedback>
+          </c-col>
+
+          <c-col [cFormFloating]="true" md="6">
+            <select cSelect id="validationCustom02" formControlName="commissionAmcName" required>
+              <option value="" disabled selected>Select an AMC</option>
+              <option [value]="item.id" *ngFor="let item of amcs">{{ item.amcName }}</option>
+            </select>
+            <label cLabel for="validationCustom02" class="ms-2">AMC</label>
+            <c-form-feedback [valid]="false" *ngIf="f['commissionAmcName'].errors && (f['commissionAmcName'].touched || submitted)">Please select an AMC.</c-form-feedback>
+          </c-col>
+
+          <c-col [cFormFloating]="true" md="6">
+            <input cFormControl id="validationCustom03" formControlName="commissionAmount" required type="text" placeholder="Commission" />
+            <label cLabel for="validationCustom03" class="ms-2">Commission</label>
+            <c-form-feedback [valid]="false" *ngIf="f['commissionAmount'].errors && (f['commissionAmount'].touched || submitted)">Please provide a commission.</c-form-feedback>
+          </c-col>
+
+          <c-col [cFormFloating]="true" md="6">
+            <input cFormControl id="validationCustom04" formControlName="commissionMonth" required type="month" placeholder="Month" />
+            <label cLabel for="validationCustom04" class="ms-2">Month</label>
+            <c-form-feedback [valid]="false" *ngIf="f['commissionMonth'].errors && (f['commissionMonth'].touched || submitted)">Please select a month.</c-form-feedback>
+          </c-col>
+
+          <c-col xs="12">
+            <button cButton class="me-1" color="primary" type="submit">
+              Update
+            </button>
+            <button [routerLink]="['/forms/commission']" cButton color="secondary">
+              Cancel
+            </button>
+          </c-col>
+        </form>
+      </c-card-body>
+    </c-card>
+  </c-col>
+</c-row>

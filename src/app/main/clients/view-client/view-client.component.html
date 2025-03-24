@@ -1,0 +1,941 @@
+<c-row ngPreserveWhitespaces>
+  <c-col xs="12">
+    <c-card class="mb-4">
+      <c-card-header>
+        <strong>Basic Details</strong>
+      </c-card-header>
+      <c-card-body>        
+        <form #customStylesForm="ngForm" [formGroup]="clientViewForm"   
+        cForm
+        class="row g-3"
+      >
+        <div class="row mt-4">
+          <c-col [cFormFloating] md="6">
+            <input readonly  class="mb-3" placeholder cFormControl  id="validationCustom01" type="text" formControlName="clientName" required/>
+            <label class="ms-2" cLabel  for="validationCustom01">Name <span class="red">*</span></label>
+          <c-form-feedback [valid]="false" *ngIf="isFieldInvalid('clientName')">Please provide a Name.</c-form-feedback>
+          </c-col>
+          <c-col [cFormFloating] md="6">
+            <input readonly  class="mb-3" placeholder cFormControl  id="validationCustom02" type="email" formControlName="clientEmail" required/>
+            <label class="ms-2" cLabel  for="validationCustom02">Email <span class="red">*</span></label>
+          <c-form-feedback [valid]="false" *ngIf="isFieldInvalid('clientEmail')">Please provide an Email.</c-form-feedback>
+          </c-col>
+
+          <c-col md="6">
+            <c-input-group  class="d-flex">
+              <c-col [cFormFloating]="true" class="w-25">
+                <select cSelect id="clientPhoneCountryCode" formControlName="clientPhoneCountryCode">
+                  <option value="null" disabled selected>Select Country Code</option>
+                  <option [value]="country.id" *ngFor="let country of countries">
+                    {{ country.dial_code }}
+                  </option>
+                </select>
+                <label for="clientPhoneCountryCode">Country Code<span class="red">*</span></label>
+              </c-col>
+              <c-col [cFormFloating]="true" class="w-75">
+                <input class="mb-3" cFormControl id="validationCustom03" type="text" formControlName="clientPhone" placeholder required/>
+                <label class="ms-2" cLabel for="validationCustom03">Phone Number <span class="red">*</span></label>
+              </c-col>
+            </c-input-group>
+            <c-form-feedback [valid]="false" *ngIf="isFieldInvalid('clientPhone')">Please provide a Phone Number.</c-form-feedback>
+          </c-col>
+
+          <c-col md="6">
+            <c-input-group  class="d-flex">
+              <c-col [cFormFloating]="true" class="w-25">
+                <select cSelect id="clientAlternatePhoneCountryCode" formControlName="clientAlternatePhoneCountryCode">
+                  <option value="" disabled selected>Select Country Code</option>
+                  <option [value]="country.id" *ngFor="let country of countries">
+                    {{ country.dial_code }}
+                  </option>
+                </select>
+                <label for="clientAlternatePhoneCountryCode">Country Code</label>
+              </c-col>
+              <c-col [cFormFloating]="true" class="w-75">
+                <input cFormControl id="validationCustom04" type="text" placeholder formControlName="clientAlternatePhone" />
+                <label class="ms-2" cLabel for="validationCustom04">Alternate Phone Number</label>
+              </c-col>
+            </c-input-group>
+          </c-col>
+          <c-col [cFormFloating] md="6">
+            <input readonly  class="mb-3" placeholder cFormControl  id="validationCustom05" type="text" formControlName="clientPanNo" required/>
+            <label class="ms-2" cLabel  for="validationCustom05">PAN No <span class="red">*</span></label>
+          <c-form-feedback [valid]="false" *ngIf="isFieldInvalid('clientPanNo')">Please provide a PAN No.</c-form-feedback>
+          </c-col>
+          <c-col [cFormFloating] md="6">
+            <input readonly  class="mb-3" placeholder cFormControl  id="validationCustom06" type="text" formControlName="clientKycNo" />
+            <label class="ms-2" cLabel  for="validationCustom06">KYC No. (KIN) </label>
+          </c-col>
+          <c-col [cFormFloating] md="6">
+            <input readonly  class="mb-3" placeholder cFormControl  id="validationCustom07" type="text" formControlName="clientAadharNo" required/>
+            <label class="ms-2" cLabel  for="validationCustom07">Aadhar No <span class="red">*</span></label>
+          <c-form-feedback [valid]="false" *ngIf="isFieldInvalid('clientAadharNo')">Please provide a Aadhar No.</c-form-feedback>
+          </c-col>
+          <c-col [cFormFloating] md="6">
+            <input readonly  class="mb-3" placeholder cFormControl  id="validationCustom08" type="text" formControlName="clientVoterId" />
+            <label class="ms-2" cLabel  for="validationCustom08">Voter ID</label>
+          </c-col>
+          <c-col [cFormFloating] md="6">
+            <input readonly  class="mb-3" placeholder cFormControl  id="validationCustom09" type="text" formControlName="clientDrivingLicenseNo" />
+            <label class="ms-2" cLabel  for="validationCustom09">Driving License No</label>
+          </c-col>
+          <c-col [cFormFloating] md="6">
+            <input readonly  class="mb-3" placeholder cFormControl  id="validationCustom10" type="date" formControlName="clientDrivingLicenseExpiryDate" />
+            <label class="ms-2" cLabel  for="validationCustom10">Driving License Expiry Date</label>
+          </c-col>
+          <c-col [cFormFloating] md="6">
+            <input readonly  class="mb-3" placeholder cFormControl  id="validationCustom11" type="text" formControlName="clientPassportNo" />
+            <label class="ms-2" cLabel  for="validationCustom11">Passport No</label>
+          </c-col>
+          <c-col [cFormFloating] md="6">
+            <input readonly  class="mb-3" placeholder cFormControl  id="validationCustom12" type="date" formControlName="clientPassportExpiryDate" />
+            <label class="ms-2" cLabel  for="validationCustom12">Passport Expiry Date</label>
+          </c-col>
+          <c-col [cFormFloating] md="6">
+            <input readonly  class="mb-3" placeholder cFormControl  id="validationCustom13" type="text" formControlName="clientCentralGovtId" />
+            <label class="ms-2" cLabel  for="validationCustom13">Any Central govt ID Proof</label>
+          </c-col>
+          <c-col [cFormFloating] md="6">
+            <input readonly  class="mb-3" placeholder cFormControl  id="validationCustom14" type="text" formControlName="clientCentralGovtIdNo" />
+            <label class="ms-2" cLabel  for="validationCustom14">Any Central govt ID No <span>(Provide Respective ID Proof Number)</span> </label>
+          </c-col>
+          <c-col [cFormFloating] md="6">
+            <input readonly  class="mb-3" placeholder cFormControl  id="validationCustom15" type="text" formControlName="clientBloodGroup" />
+            <label class="ms-2" cLabel  for="validationCustom15">Blood Group</label>
+          </c-col>
+          <c-col [cFormFloating] md="6">
+            <input readonly  class="mb-3" placeholder cFormControl  id="validationCustom16" type="date" formControlName="clientDateOfBirth" required/>
+            <label class="ms-2" cLabel  for="validationCustom16">Date of Birth <span class="red">*</span></label>
+          <c-form-feedback [valid]="false" *ngIf="isFieldInvalid('clientDateOfBirth')">Please select Date of Birth.</c-form-feedback>
+          </c-col>
+          <c-col [cFormFloating] md="6">
+            <select class="mb-3" cSelect  cFormControl id="validationCustom17"  formControlName="clientGender">
+              <option value="null" disabled selected>Select Gender</option>
+              <option [value]="item.id" *ngFor="let item of gender">{{ item.genderName }}</option>
+            </select>
+            <label class="ms-2" cLabel  for="validationCustom17">Gender <span class="red">*</span></label>
+          <c-form-feedback [valid]="false" *ngIf="isFieldInvalid('clientGender')">Please select a Gender.</c-form-feedback>
+          </c-col>
+          <c-col [cFormFloating] md="6">
+            <select cSelect  cFormControl id="validationCustom18"  formControlName="clientMaritalStatus" required>
+              <option value="null" disabled selected>Select Marital Status</option>
+              <option [value]="item.id" *ngFor="let item of maritalStatus">{{ item.maritalStatusName }}</option>
+            </select>
+            <label class="ms-2"  cLabel for="validationCustom18">Marital Status <span class="red">*</span></label>
+          <c-form-feedback [valid]="false" *ngIf="isFieldInvalid('clientMaritalStatus')">Please select a Marital Status.</c-form-feedback>
+          </c-col>
+          <c-col [cFormFloating] md="6">
+            <input readonly  class="mb-3" placeholder cFormControl  id="validationCustom19"  type="date" formControlName="clientAnniversaryDate"/>
+            <label class="ms-2" cLabel  for="validationCustom19">Anniversary Date</label>
+          </c-col>
+          <c-col [cFormFloating] md="6">
+            <select  cSelect  cFormControl id="validationCustom20"  formControlName="clientCountryOfBirth" required>
+              <option value="" disabled selected>Select a Country</option>
+              <option [value]="item.id" *ngFor="let item of countries">{{ item.name }}</option>
+            </select>
+            <label class="ms-2" cLabel  for="validationCustom20">Country of Birth <span class="red">*</span></label>
+          <c-form-feedback [valid]="false" *ngIf="isFieldInvalid('clientCountryOfBirth')">Please select a Country of Birth.</c-form-feedback>
+          </c-col>
+          <c-col [cFormFloating] md="6">
+            <input readonly  class="mb-3" placeholder cFormControl  id="validationCustom21"  type="text" formControlName="clientPlaceOfBirth" required/>
+            <label class="ms-2" cLabel  for="validationCustom21">Place of Birth <span class="red">*</span></label>
+            <c-form-feedback [valid]="false" *ngIf="isFieldInvalid('clientPlaceOfBirth')">Please provide a Place of Birth.</c-form-feedback>
+          </c-col>
+          <c-col [cFormFloating] md="6">
+            <input readonly  class="mb-3" placeholder cFormControl  id="validationCustom22"  type="text" formControlName="clientCitizenship" />
+            <label class="ms-2" cLabel  for="validationCustom22">Citizenship </label>
+          </c-col>
+          <c-col [cFormFloating] md="6">
+            <input readonly  class="mb-3" placeholder cFormControl  id="validationCustom23"  type="text" formControlName="clientResidentialStatus"/>
+            <label class="ms-2" cLabel  for="validationCustom23">Residencial Status</label>
+          </c-col>
+          <c-col [cFormFloating] md="6">
+            <input readonly  class="mb-3" placeholder cFormControl  id="validationCustom24"  type="text" formControlName="clientOccupation" required/>
+            <label class="ms-2" cLabel  for="validationCustom24">Occupation <span class="red">*</span></label>
+          <c-form-feedback [valid]="false" *ngIf="isFieldInvalid('clientOccupation')">Please provide an Occupation.</c-form-feedback>          
+          </c-col>
+          <c-col [cFormFloating] md="6">
+            <input readonly  class="mb-3" placeholder cFormControl  id="validationCustom25"  type="text" formControlName="clientAnnualIncome" required />
+            <label class="ms-2" cLabel  for="validationCustom25">Annual Income <span class="red">*</span></label>
+          <c-form-feedback [valid]="false" *ngIf="isFieldInvalid('clientAnnualIncome')">Please provide an Annual Income.</c-form-feedback>
+          </c-col>
+          <c-col [cFormFloating] md="6">
+            <select  cSelect  cFormControl id="validationCustom26"  formControlName="clientPoliticallyExposed" required>
+              <option value="null" disabled selected selected>Select Politically Exposed</option>
+              <option [value]="item.id" *ngFor="let item of politicalExposed">{{ item.politicallyExposedPersonName }}</option>
+            </select>
+            <label class="ms-2" cLabel  for="validationCustom26">Politically Exposed Person <span class="red">*</span></label>
+          <c-form-feedback [valid]="false" *ngIf="isFieldInvalid('clientPoliticallyExposed')">Please select Politically Exposed Person .</c-form-feedback>
+          </c-col>
+        </div>
+      </form>
+      </c-card-body>
+    </c-card>
+    <c-card class="mb-4">
+      <c-card-header>
+        <strong>Family Details</strong>
+      </c-card-header>
+      <c-card-body>        
+        <form #customStylesForm="ngForm" [formGroup]="clientViewForm" 
+        cForm
+        class="row g-3 needs-validation"
+      >
+        <div class="row mt-4">
+          <c-col formGroupName="familyDetails">
+            <c-row>
+              <c-col [cFormFloating] md="6">
+                <input readonly  class="mb-3" placeholder cFormControl id="validationCustom31" formControlName="clientFatherName"  type="text" />
+                <label class="ms-2" cLabel for="validationCustom31">Father Name</label>
+              </c-col>
+              <c-col [cFormFloating] md="6">
+                <input readonly  class="mb-3" placeholder cFormControl id="validationCustom32" formControlName="clientMotherName" type="text" />
+                <label class="ms-2" cLabel for="validationCustom32">Mother Name</label>
+              </c-col>
+              <c-col [cFormFloating] md="6">
+                <input readonly  class="mb-3" placeholder cFormControl id="validationCustom33" formControlName="clientSpouseName"  type="text" />
+                <label class="ms-2" cLabel for="validationCustom33">Spouse Name</label>
+              </c-col>
+              <c-col [cFormFloating] md="6">
+                <input readonly  class="mb-3" placeholder cFormControl id="validationCustom34" formControlName="clientSpouseBirthDate"  type="date" />
+                <label class="ms-2" cLabel for="validationCustom34">Spouse Date of Birth</label>
+              </c-col>
+            </c-row>
+          </c-col>
+          <div formArrayName="children" *ngFor="let child of children.controls; let idx=index">
+            <c-col [formGroupName]="idx">
+              <c-row>
+                <c-col [cFormFloating]>
+                  <input readonly  class="mb-3" placeholder cFormControl id="childName{{idx}}"  formControlName="clientChildrenName" type="text" />
+                  <label class="ms-2" cLabel for="childName{{idx}}">Child {{idx + 1}}</label>
+                </c-col>
+                <c-col [cFormFloating]>
+                  <input readonly  class="mb-3" placeholder cFormControl id="childDOB{{idx}}" formControlName="clientChildrenBirthDate" type="date" />
+                  <label class="ms-2" cLabel for="childDOB{{idx}}">child {{idx + 1}} Date of Birth</label>
+                </c-col>
+              </c-row>
+            </c-col>
+          </div>
+        </div>
+      </form>
+      </c-card-body>
+    </c-card>
+    <c-card class="mb-4">
+      <c-card-header>
+        <strong>Present Address Details</strong>
+      </c-card-header>
+      <c-card-body>        
+        <form #customStylesForm="ngForm" [formGroup]="clientViewForm" 
+        cForm
+        class="row g-3 needs-validation"
+      >
+        <div class="row mt-4">
+          <c-col formGroupName="presentAddress" md="12">
+            <c-row>
+              <c-col [cFormFloating] md="12">
+                <textarea readonly  class="mb-3" cFormControl id="validationCustom41" formControlName="clientPresentAddress" rows="2"></textarea>
+                <label class="ms-2" cLabel for="validationCustom41">Address</label>
+              </c-col>
+              <c-col [cFormFloating] md="6">
+                <input readonly  class="mb-3" placeholder cFormControl id="validationCustom42"  type="text" formControlName="clientPresentLandmark"/>
+                <label class="ms-2" cLabel for="validationCustom42">LandMark</label>
+              </c-col>
+              <c-col [cFormFloating] md="6">
+                <input readonly  class="mb-3" placeholder cFormControl id="validationCustom43"  type="text" formControlName="clientPresentCity"/>
+                <label class="ms-2" cLabel for="validationCustom43">City</label>
+              </c-col>
+              <c-col [cFormFloating] md="6">
+                <input readonly  class="mb-3" placeholder cFormControl id="validationCustom44"  type="text" formControlName="clientPresentDistrict" />
+                <label class="ms-2" cLabel for="validationCustom44">District</label>
+              </c-col>
+              <c-col [cFormFloating] md="6">
+                <select  cSelect cFormControl id="validationCustom45"  formControlName="clientPresentState">
+                  <option value="null" disabled selected>Select a State</option>
+                  <option [value]="item.id" *ngFor="let item of state">{{ item.stateName }}</option>
+                </select>
+                <label class="ms-2" cLabel for="validationCustom45">State</label>
+              </c-col>
+              <c-col [cFormFloating] md="6">
+                <input readonly  class="mb-3" placeholder cFormControl id="validationCustom46"  type="text" formControlName="clientPresentPincode"/>
+                <label class="ms-2" cLabel for="validationCustom46">Pincode</label>
+              </c-col>
+              <c-col [cFormFloating] md="6">
+                <select  cSelect cFormControl id="validationCustom47"  formControlName="clientPresentCountry">
+                  <option value="null" disabled selected>Select a Country</option>
+                  <option [value]="item.id" *ngFor="let item of countries">{{ item.name }}</option>
+                </select>
+                <label class="ms-2" cLabel for="validationCustom47">Country</label>
+              </c-col>
+              <c-col md="6">
+                <c-input-group  class="d-flex">
+                  <c-col [cFormFloating]="true" class="w-25">
+                    <select cSelect id="clientPresentCountryCode" formControlName="clientPresentCountryCode">
+                      <option value="null" disabled selected>Select Country Code</option>
+                      <option [value]="country.id" *ngFor="let country of countries">
+                        {{ country.dial_code }}
+                      </option>
+                    </select>
+                    <label for="clientPresentCountryCode">Country Code</label>
+                  </c-col>
+                  <c-col [cFormFloating]="true" class="w-75">
+                    <input class="mb-3" placeholder cFormControl id="validationCustom49"  type="text" formControlName="clientPresentMobile" />
+                    <label class="ms-2" cLabel for="validationCustom49">Mobile</label>
+                  </c-col>
+                </c-input-group>
+              </c-col>
+              <c-col [cFormFloating] md="6">
+                <input readonly  class="mb-3" placeholder cFormControl id="validationCustom50"  type="text" formControlName="clientPresentLandline"/>
+                <label class="ms-2" cLabel for="validationCustom50">Landline</label>
+              </c-col>
+            </c-row>
+          </c-col>
+        </div>
+      </form>
+      </c-card-body>
+    </c-card>
+    <c-card class="mb-4">
+      <c-card-header>
+        <strong>Permenent Address Details</strong>
+      </c-card-header>
+      <c-card-body>        
+        <form #customStylesForm="ngForm" [formGroup]="clientViewForm" 
+        cForm
+        class="row g-3 needs-validation"
+      >
+        <div class="row mt-4">
+          <c-col formGroupName="permanentAddress" md="12">
+            <c-row>
+              <c-col [cFormFloating] md="12">
+                <textarea readonly  class="mb-3" cFormControl id="validationCustom51" rows="2" formControlName="clientPermanentAddress"></textarea>
+                <label class="ms-2" cLabel for="validationCustom51">Address</label>
+              </c-col>
+              <c-col [cFormFloating] md="6">
+                <input readonly  class="mb-3" placeholder cFormControl id="validationCustom52"  type="text" formControlName="clientPermanentLandmark"/>
+                <label class="ms-2" cLabel for="validationCustom52">LandMark</label>
+              </c-col>
+              <c-col [cFormFloating] md="6">
+                <input readonly  class="mb-3" placeholder cFormControl id="validationCustom53"  type="text" formControlName="clientPermanentCity"/>
+                <label class="ms-2" cLabel for="validationCustom53">City</label>
+              </c-col>
+              <c-col [cFormFloating] md="6">
+                <input readonly  class="mb-3" placeholder cFormControl id="validationCustom54"  type="text" formControlName="clientPermanentDistrict"/>
+                <label class="ms-2" cLabel for="validationCustom54">District</label>
+              </c-col>
+              <c-col [cFormFloating] md="6">
+                <select  cSelect cFormControl id="validationCustom55"  formControlName="clientPermanentState">
+                  <option value="null" disabled selected>Select a State</option>
+                  <option [value]="item.id" *ngFor="let item of state">{{ item.stateName }}</option>
+                </select>
+                <label class="ms-2" cLabel for="validationCustom55">State</label>
+              </c-col>
+              <c-col [cFormFloating] md="6">
+                <input readonly  class="mb-3" placeholder cFormControl id="validationCustom56"  type="text" formControlName="clientPermanentPincode"/>
+                <label class="ms-2" cLabel for="validationCustom56">Pincode</label>
+              </c-col>
+              <c-col [cFormFloating] md="6">
+                <select  cSelect cFormControl id="validationCustom57"  formControlName="clientPermanentCountry">
+                  <option value="null" disabled selected>Select a Country</option>
+                  <option [value]="item.id" *ngFor="let item of countries">{{ item.name }}</option>
+                </select>
+                <label class="ms-2" cLabel for="validationCustom57">Country</label>
+              </c-col>
+              <c-col md="6">
+                <c-input-group  class="d-flex">
+                  <c-col [cFormFloating]="true" class="w-25">
+                    <select cSelect id="clientPermanentCountryCode" formControlName="clientPermanentCountryCode">
+                      <option value="null" disabled selected>Select Country Code</option>
+                      <option [value]="country.id" *ngFor="let country of countries">
+                        {{ country.dial_code }}
+                      </option>
+                    </select>
+                    <label for="clientPermanentCountryCode">Country Code</label>
+                  </c-col>
+                  <c-col [cFormFloating]="true" class="w-75">
+                    <input class="mb-3" placeholder cFormControl id="validationCustom58"  type="text" formControlName="clientPermanentMobile"/>
+                    <label class="ms-2" cLabel for="validationCustom58">Mobile</label>
+                  </c-col>
+                </c-input-group>
+              </c-col>
+              <c-col [cFormFloating] md="6">
+                <input readonly  class="mb-3" placeholder cFormControl id="validationCustom59"  type="text" formControlName="clientPermanentLandline"/>
+                <label class="ms-2" cLabel for="validationCustom59">Landline</label>
+              </c-col>
+            </c-row>
+          </c-col>
+        </div>
+      </form>
+      </c-card-body>
+    </c-card>
+    <c-card class="mb-4">
+      <c-card-header>
+        <strong>Office Address Details</strong>
+      </c-card-header>
+      <c-card-body>        
+        <form #customStylesForm="ngForm" [formGroup]="clientViewForm" 
+        cForm
+        class="row g-3 needs-validation"
+      >
+        <div class="row mt-4">
+          <c-col formGroupName="OfficeAddress" md="12">
+            <c-row>
+              <c-col [cFormFloating] md="12">
+                <textarea readonly  class="mb-3" cFormControl id="validationCustom60" rows="2" formControlName="clientOfficeAddress"></textarea>
+                <label class="ms-2" cLabel for="validationCustom60">Address</label>
+              </c-col>
+              <c-col [cFormFloating] md="6">
+                <input readonly  class="mb-3" placeholder cFormControl id="validationCustom61"  type="text" formControlName="clientOfficeLandline" />
+                <label class="ms-2" cLabel for="validationCustom61">Landline</label>
+              </c-col>
+              <c-col [cFormFloating] md="6">
+                <input readonly  class="mb-3" placeholder cFormControl id="validationCustom62"  type="text" formControlName="clientOfficeCity" />
+                <label class="ms-2" cLabel for="validationCustom62">City</label>
+              </c-col>
+              <c-col md="6">
+                <c-input-group  class="d-flex">
+                  <c-col [cFormFloating]="true" class="w-25">
+                    <select cSelect id="clientOfficeCountryCode" formControlName="clientOfficeCountryCode">
+                      <option value="null" disabled selected>Select Country Code</option>
+                      <option [value]="country.id" *ngFor="let country of countries">
+                        {{ country.dial_code }}
+                      </option>
+                    </select>
+                    <label for="clientOfficeCountryCode">Country Code</label>
+                  </c-col>
+                  <c-col [cFormFloating]="true" class="w-75">
+                    <input class="mb-3" placeholder cFormControl id="validationCustom63"  type="text" formControlName="clientOfficeMobile" />
+                    <label class="ms-2" cLabel for="validationCustom63">Mobile</label>
+                  </c-col>
+                </c-input-group>
+              </c-col>
+              <c-col [cFormFloating] md="6">
+                <select  cSelect cFormControl id="validationCustom64"  formControlName="clientOfficeState">
+                  <option value="null" disabled selected>Select a State</option>
+                  <option [value]="item.id" *ngFor="let item of state">{{ item.stateName }}</option>
+                </select>
+                <label class="ms-2" cLabel for="validationCustom64">State</label>
+              </c-col>
+              <c-col [cFormFloating] md="6">
+                <input readonly  class="mb-3" placeholder cFormControl id="validationCustom65"  type="text" formControlName="clientOfficePincode"/>
+                <label class="ms-2" cLabel for="validationCustom65">Pincode</label>
+              </c-col>
+              <c-col [cFormFloating] md="6">
+                <select  cSelect cFormControl id="validationCustom66"  formControlName="clientOfficeCountry">
+                  <option value="null" disabled selected>Select a Country</option>
+                  <option [value]="item.id" *ngFor="let item of countries">{{ item.name }}</option>
+                </select>
+                <label class="ms-2" cLabel for="validationCustom66">Country</label>
+              </c-col>
+            </c-row>
+          </c-col>
+        </div>
+      </form>
+      </c-card-body>
+    </c-card>
+    <c-card class="mb-4">
+      <c-card-header>
+        <strong>Overseas Address Details</strong>
+      </c-card-header>
+      <c-card-body>        
+        <form #customStylesForm="ngForm" [formGroup]="clientViewForm" 
+        cForm
+        class="row g-3 needs-validation"
+      >
+        <div class="row mt-4">
+          
+          <c-col formGroupName="overseasAddress" md="12">
+            <c-row>
+              <c-col [cFormFloating] md="12">
+                <textarea readonly  class="mb-3" cFormControl id="validationCustom67" rows="2" formControlName="clientOverseasAddress"></textarea>
+                <label class="ms-2" cLabel for="validationCustom67">Address</label>
+              </c-col>
+              <c-col [cFormFloating] md="6">
+                <input readonly  class="mb-3" placeholder cFormControl id="validationCustom68"  type="text" formControlName="clientOverseasLandline"/>
+                <label class="ms-2" cLabel for="validationCustom68">Landline</label>
+              </c-col>
+              <c-col [cFormFloating] md="6">
+                <input readonly  class="mb-3" placeholder cFormControl id="validationCustom69"  type="text" formControlName="clientOverseasCity" />          
+                <label class="ms-2" cLabel for="validationCustom69">City</label>
+              </c-col>
+              <c-col md="6">
+                <c-input-group  class="d-flex">
+                  <c-col [cFormFloating]="true" class="w-25">
+                    <select cSelect id="clientOverseasCountryCode" formControlName="clientOverseasCountryCode">
+                      <option value="null" disabled selected>Select Country Code</option>
+                      <option [value]="country.id" *ngFor="let country of countries">
+                        {{ country.dial_code }}
+                      </option>
+                    </select>
+                    <label for="clientOverseasCountryCode">Country Code</label>
+                  </c-col>
+                  <c-col [cFormFloating]="true" class="w-75">
+                    <input class="mb-3" placeholder cFormControl id="validationCustom70"  type="text" formControlName="clientOverseasMobile"/>          
+                    <label class="ms-2" cLabel for="validationCustom70">Mobile</label>
+                  </c-col>
+                </c-input-group>
+              </c-col>
+              <c-col [cFormFloating] md="6">
+                <select  cSelect cFormControl id="validationCustom71"  formControlName="clientOverseasState">
+                  <option value="null" disabled selected>Select a State</option>
+                  <option [value]="item.id" *ngFor="let item of state">{{ item.stateName }}</option>
+                </select>      
+                <label class="ms-2" cLabel for="validationCustom71">State</label>
+              </c-col>
+              <c-col [cFormFloating] md="6">
+                <input readonly  class="mb-3" placeholder cFormControl id="validationCustom72"  type="text" formControlName="clientOverseasPincode"/>          
+                <label class="ms-2" cLabel for="validationCustom72">Pincode</label>
+              </c-col>
+              <c-col [cFormFloating] md="6">
+                <select  cSelect cFormControl id="validationCustom73"  formControlName="clientOverseasCountry">
+                  <option value="null" disabled selected>Select a Country</option>
+                  <option [value]="item.id" *ngFor="let item of countries">{{ item.name }}</option>
+                </select>     
+                <label class="ms-2" cLabel for="validationCustom73">Country</label>
+              </c-col>
+            </c-row>
+          </c-col>
+        </div>
+      </form>
+      </c-card-body>
+    </c-card>
+    <c-card class="mb-4">
+      <c-card-header>
+        <strong>Nominee Details</strong>
+      </c-card-header>
+      <c-card-body>        
+        <form #customStylesForm="ngForm" [formGroup]="clientViewForm" 
+        cForm
+        class="row g-3 needs-validation"
+      >
+        <div class="row mt-4">          
+          <div formArrayName="nominee" *ngFor="let nomine of nominee.controls; let ida=index">
+            <c-col [formGroupName]="ida">
+              <c-row>
+                <h5>Nominee {{ida + 1}}</h5>
+                <c-col [cFormFloating] md="6">
+                  <input readonly  class="mb-3" placeholder cFormControl id="clientNomineeName{{ida}}"  formControlName="clientNomineeName" type="text" />
+                  <label class="ms-2" cLabel for="clientNomineeName{{ida}}">Nominee Name</label>
+                </c-col>
+                <c-col [cFormFloating] md="6">
+                  <select  cSelect cFormControl id="clientNomineeRelation{{ida}}"  formControlName="clientNomineeRelation">
+                    <option value="null" disabled selected>Select a Relation</option>
+                    <option [value]="item.id" *ngFor="let item of relation">{{ item.relationship }}</option>
+                  </select>   
+                  <label class="ms-2" cLabel for="clientNomineeRelation{{ida}}">Nominee Relationship</label>
+                </c-col>
+                <c-col [cFormFloating] md="6">
+                  <input readonly  class="mb-3" placeholder cFormControl id="clientNomineePanNo{{ida}}" formControlName="clientNomineePanNo"  type="text" />
+                  <label class="ms-2" cLabel for="clientNomineePanNo{{ida}}">Nominee PAN No</label>
+                </c-col>
+                <c-col [cFormFloating] md="6">
+                  <input readonly  class="mb-3" placeholder cFormControl id="clientNomineeDob{{ida}}" formControlName="clientNomineeDob"  type="date" />
+                  <label class="ms-2" cLabel for="clientNomineeDob{{ida}}">Nominee Date of Birth</label>
+                </c-col>
+                <c-col [cFormFloating] md="6">
+                  <input readonly  class="mb-3" placeholder cFormControl id="clientNomineePercentageAllocation{{ida}}" formControlName="clientNomineePercentageAllocation"  type="text" />
+                  <label class="ms-2" cLabel for="clientNomineePercentageAllocation{{ida}}">Nominee Percentage Allocation</label>
+                </c-col>
+                <ng-container *ngIf="showGuardianFields(ida)">
+                  <c-col [cFormFloating] md="6">
+                    <input readonly  class="mb-3" placeholder cFormControl id="clientNomineeGuardianName{{ida}}" formControlName="clientNomineeGuardianName" type="text" />
+                    <label class="ms-2" cLabel for="clientNomineeGuardianName{{ida}}">Guardian Name</label>
+                  </c-col>
+                  <c-col [cFormFloating] md="6">
+                    <select  cSelect cFormControl id="clientNomineeGuardianRelation{{ida}}" formControlName="clientNomineeGuardianRelation">
+                      <option value="null" disabled selected>Select a Relation</option>
+                      <option [value]="item.id" *ngFor="let item of relation">{{ item.relationship }}</option>
+                    </select>
+                    <label class="ms-2" cLabel for="clientNomineeGuardianRelation{{ida}}">Guardian Relationship</label>
+                  </c-col>
+                  <c-col [cFormFloating] md="6">
+                    <input readonly  class="mb-3" placeholder cFormControl id="clientNomineeGuardianPanNo{{ida}}" formControlName="clientNomineeGuardianPanNo" type="text" />
+                    <label class="ms-2" cLabel for="clientNomineeGuardianPanNo{{ida}}">Guardian PAN No</label>
+                  </c-col>
+                </ng-container>
+              </c-row>
+            </c-col>
+          </div>
+        </div>
+      </form>
+      </c-card-body>
+    </c-card>
+    <c-card class="mb-4">
+      <c-card-header>
+        <strong>Insurance Details</strong>
+      </c-card-header>
+      <c-card-body>        
+        <form #customStylesForm="ngForm" [formGroup]="clientViewForm" 
+        cForm
+        class="row g-3 needs-validation"
+      >
+        <div class="row mt-4">
+          
+          <div formArrayName="policy" *ngFor="let pol of policy.controls; let idb=index">
+            <c-col [formGroupName]="idb">
+              <c-row>
+                <h5>Insurance {{idb + 1}}</h5>
+                <c-col [cFormFloating] md="6">
+                  <input readonly  class="mb-3" placeholder cFormControl id="policyNumber{{idb}}"  formControlName="clientInsurancePolicyNumber" type="text" />
+                  <label class="ms-2" cLabel for="policyNumber{{idb}}">Policy Number</label>
+                </c-col>
+                <c-col [cFormFloating] md="6">
+                  <input readonly  class="mb-3" placeholder cFormControl id="policyName{{idb}}" formControlName="clientInsurancePolicyName"  type="text" />
+                  <label class="ms-2" cLabel for="policyName{{idb}}">Policy Name</label>
+                </c-col>
+                <c-col [cFormFloating] md="6">
+                  <input readonly  class="mb-3" placeholder cFormControl id="insuranceCompanyName{{idb}}" formControlName="clientInsurancePolicyCompanyName"  type="text" />
+                  <label class="ms-2" cLabel for="insuranceCompanyName{{idb}}">Insurance Company Name</label>
+                </c-col>
+                <c-col [cFormFloating] md="6">
+                  <input readonly  class="mb-3" placeholder cFormControl id="policyTerm{{idb}}"  formControlName="clientInsurancePolicyTerm" type="text" />
+                  <label class="ms-2" cLabel for="policyTerm{{idb}}">Policy Term</label>
+                </c-col>
+                <c-col [cFormFloating] md="6">
+                  <input readonly  class="mb-3" placeholder cFormControl id="policyMaturityAmount{{idb}}" formControlName="clientInsurancePolicyMaturityAmount"  type="text" />
+                  <label class="ms-2" cLabel for="policyMaturityAmount{{idb}}">Policy Maturity Amount</label>
+                </c-col>
+                <c-col [cFormFloating] md="6">
+                  <input readonly  class="mb-3" placeholder cFormControl id="policyPayment{{idb}}" formControlName="clientInsurancePolicyPaymentPerInstallment"  type="text" />
+                  <label class="ms-2" cLabel for="policyPayment{{idb}}">Policy Payment per Installment</label>
+                </c-col>
+              </c-row>
+            </c-col>
+          </div>
+          
+          <div formArrayName="medPolicy" *ngFor="let med of medPolicy.controls; let idc=index">
+            <c-col [formGroupName]="idc">
+              <c-row>
+                <h5>Medical Insurance {{idc + 1}}</h5>
+                <c-col [cFormFloating] md="6">
+                  <input readonly  class="mb-3" placeholder cFormControl id="medicalPolicyNumber{{idc}}"  formControlName="clientMedicalInsurancePolicyNumber" type="text" />
+                  <label class="ms-2" cLabel for="medicalPolicyNumber{{idc}}">Medical Policy Number</label>
+                </c-col>
+                <c-col [cFormFloating] md="6">
+                  <input readonly  class="mb-3" placeholder cFormControl id="medicalPolicyName{{idc}}" formControlName="clientMedicalInsurancePolicyName"  type="text" />
+                  <label class="ms-2" cLabel for="medicalPolicyName{{idc}}">Medical Policy Name</label>
+                </c-col>
+                <c-col [cFormFloating] md="6">
+                  <input readonly  class="mb-3" placeholder cFormControl id="medicalInsuranceCompanyName{{idc}}" formControlName="clientMedicalInsurancePolicyCompanyName"  type="text" />
+                  <label class="ms-2" cLabel for="medicalInsuranceCompanyName{{idc}}">Medical Insurance Company Name</label>
+                </c-col>
+                <c-col [cFormFloating] md="6">
+                  <input readonly  class="mb-3" placeholder cFormControl id="medicalPolicyTerm{{idc}}"  formControlName="clientMedicalInsurancePolicyTerm" type="text" />
+                  <label class="ms-2" cLabel for="medicalPolicyTerm{{idc}}">Medical Policy Term</label>
+                </c-col>
+                <c-col [cFormFloating] md="6">
+                  <input readonly  class="mb-3" placeholder cFormControl id="medicalPolicyMaturityAmount{{idc}}" formControlName="clientMedicalInsurancePolicyMaturityAmount"  type="text" />
+                  <label class="ms-2" cLabel for="medicalPolicyMaturityAmount{{idc}}">Medical Policy Maturity Amount</label>
+                </c-col>
+                <c-col [cFormFloating] md="6">
+                  <input readonly  class="mb-3" placeholder cFormControl id="medicalPolicyPayment{{idc}}" formControlName="clientMedicalInsurancePolicyPaymentPerInstallment"  type="text" />
+                  <label class="ms-2" cLabel for="medicalPolicyPayment{{idc}}">Medical Policy Payment per Installment</label>
+                </c-col>
+              </c-row>
+            </c-col>
+          </div>
+          
+          <div formArrayName="termPolicy" *ngFor="let term of termPolicy.controls; let idd=index">
+            <c-col [formGroupName]="idd">
+              <c-row>
+                <h5>Term Insurance {{idd + 1}}</h5>
+                <c-col [cFormFloating] md="6">
+                  <input readonly  class="mb-3" placeholder cFormControl id="termPolicyNumber{{idd}}"  formControlName="clientTermInsurancePolicyNumber" type="text" />
+                  <label class="ms-2" cLabel for="termPolicyNumber{{idd}}">Term Policy Number</label>
+                </c-col>
+                <c-col [cFormFloating] md="6">
+                  <input readonly  class="mb-3" placeholder cFormControl id="termPolicyName{{idd}}" formControlName="clientTermInsurancePolicyName"  type="text" />
+                  <label class="ms-2" cLabel for="termPolicyName{{idd}}">Term Policy Name</label>
+                </c-col>
+                <c-col [cFormFloating] md="6">
+                  <input readonly  class="mb-3" placeholder cFormControl id="termInsuranceCompanyName{{idd}}" formControlName="clientTermInsurancePolicyCompanyName"  type="text" />
+                  <label class="ms-2" cLabel for="termInsuranceCompanyName{{idd}}">Term Insurance Company Name</label>
+                </c-col>
+                <c-col [cFormFloating] md="6">
+                  <input readonly  class="mb-3" placeholder cFormControl id="termPolicyTerm{{idd}}"  formControlName="clientTermInsurancePolicyTerm" type="text" />
+                  <label class="ms-2" cLabel for="termPolicyTerm{{idd}}">Term Policy Term</label>
+                </c-col>
+                <c-col [cFormFloating] md="6">
+                  <input readonly  class="mb-3" placeholder cFormControl id="termPolicyMaturityAmount{{idd}}" formControlName="clientTermInsurancePolicyMaturityAmount"  type="text" />
+                  <label class="ms-2" cLabel for="termPolicyMaturityAmount{{idd}}">Term Policy Maturity Amount</label>
+                </c-col>
+                <c-col [cFormFloating] md="6">
+                  <input readonly  class="mb-3" placeholder cFormControl id="termPolicyPayment{{idd}}" formControlName="clientTermInsurancePolicyPaymentPerInstallment"  type="text" />
+                  <label class="ms-2" cLabel for="termPolicyPayment{{idd}}">Term Policy Payment per Installment</label>
+                </c-col>
+              </c-row>
+            </c-col>
+          </div>
+        </div>
+      </form>
+      </c-card-body>
+    </c-card>
+    <c-card class="mb-4">
+      <c-card-header>
+        <strong>Uploaded Files Details</strong>
+      </c-card-header>
+      <c-card-body>        
+        <form #customStylesForm="ngForm" [formGroup]="clientViewForm" 
+        cForm
+        class="row g-3 needs-validation">
+          <div class="row mt-4">
+            <c-col formGroupName="uploadFiles" md="12">
+              <c-row>
+                <c-col md="6">
+                  <label cLabel for="validationCustom89">Passport Size Photo</label>
+                  <input readonly aria-label="file example" cFormControl id="validationCustom89" type="file" accept=".jpg,.jpeg,.pdf" formControlName="clientPaasPortSizePhoto" />   
+                  <input readonly cFormControl id="clientPaasPortSizePhotoDisplay" plaintext readonly type="text" 
+                    [value]="fileNames['clientPaasPortSizePhoto'] || ''"
+                    (click)="openFilePreview('clientPaasPortSizePhoto')"
+                    style="cursor: pointer; text-decoration: underline;" /> 
+                </c-col>
+                <c-col md="6">
+                  <label cLabel for="validationCustom90">Pan Card Photo </label>
+                  <input readonly aria-label="file example" cFormControl id="validationCustom90" type="file" accept=".jpg,.jpeg,.pdf" formControlName="clientPanCardPhoto"/>  
+                  <input readonly cFormControl id="clientPanCardPhotoDisplay" plaintext readonly type="text" 
+                    [value]="fileNames['clientPanCardPhoto'] || ''"
+                    (click)="openFilePreview('clientPanCardPhoto')"
+                    style="cursor: pointer; text-decoration: underline;" />  
+                </c-col>
+                <c-col md="6">
+                  <label cLabel for="validationCustom91">Aadhar card </label>
+                  <input readonly aria-label="file example" cFormControl id="validationCustom91" type="file" accept=".jpg,.jpeg,.pdf" formControlName="clientAadharCard"/>     
+                  <input readonly cFormControl id="clientAadharCardDisplay" plaintext readonly type="text" 
+                    [value]="fileNames['clientAadharCard'] || ''"
+                    (click)="openFilePreview('clientAadharCard')"
+                    style="cursor: pointer; text-decoration: underline;" /> 
+                </c-col>
+                <c-col md="6">
+                  <label cLabel for="validationCustom92">Driving License </label>
+                  <input readonly aria-label="file example" cFormControl id="validationCustom92" type="file" accept=".jpg,.jpeg,.pdf" formControlName="clientDrivingLicense"/> 
+                  <input readonly cFormControl id="clientDrivingLicenseDisplay" plaintext readonly type="text" 
+                    [value]="fileNames['clientDrivingLicense'] || ''"
+                    (click)="openFilePreview('clientDrivingLicense')"
+                    style="cursor: pointer; text-decoration: underline;" />  
+                </c-col>
+                <c-col md="6">
+                  <label cLabel for="validationCustom93">Voter ID Front Image </label>
+                  <input readonly aria-label="file example" cFormControl id="validationCustom93" type="file" accept=".jpg,.jpeg,.pdf" formControlName="clientVoterIDFrontImage"/>  
+                  <input readonly cFormControl id="clientVoterIDFrontImageDisplay" plaintext readonly type="text" 
+                    [value]="fileNames['clientVoterIDFrontImage'] || ''"
+                    (click)="openFilePreview('clientVoterIDFrontImage')"
+                    style="cursor: pointer; text-decoration: underline;" />    
+                </c-col>
+                <c-col md="6">
+                  <label cLabel for="validationCustom94">Voter ID Back Image </label>
+                  <input readonly aria-label="file example" cFormControl id="validationCustom94" type="file" accept=".jpg,.jpeg,.pdf" formControlName="clientVoterIDBackImage"/>  
+                  <input readonly cFormControl id="clientVoterIDBackImageDisplay" plaintext readonly type="text" 
+                    [value]="fileNames['clientVoterIDBackImage'] || ''"
+                    (click)="openFilePreview('clientVoterIDBackImage')"
+                    style="cursor: pointer; text-decoration: underline;" />         
+                </c-col>
+                <c-col md="6">
+                  <label cLabel for="validationCustom95">Passport Front Image  </label>
+                  <input readonly aria-label="file example" cFormControl id="validationCustom95" type="file" accept=".jpg,.jpeg,.pdf" formControlName="clientPassportFrontImage"/>
+                  <input readonly cFormControl id="clientPassportFrontImageDisplay" plaintext readonly type="text" 
+                    [value]="fileNames['clientPassportFrontImage'] || ''"
+                    (click)="openFilePreview('clientPassportFrontImage')"
+                    style="cursor: pointer; text-decoration: underline;" />    
+                </c-col>
+                <c-col md="6">
+                  <label cLabel for="validationCustom96">Passport Back Image </label>
+                  <input readonly aria-label="file example" cFormControl id="validationCustom96" type="file" accept=".jpg,.jpeg,.pdf" formControlName="clientPassportBackImage"/>    
+                  <input readonly cFormControl id="clientPassportBackImageDisplay" plaintext readonly type="text" 
+                    [value]="fileNames['clientPassportBackImage'] || ''"
+                    (click)="openFilePreview('clientPassportBackImage')"
+                    style="cursor: pointer; text-decoration: underline;" />       
+                </c-col>
+                <c-col md="6">
+                  <label cLabel for="validationCustom97">Foreign Address Proof </label>
+                  <input readonly aria-label="file example" cFormControl id="validationCustom97" type="file" accept=".jpg,.jpeg,.pdf" formControlName="clientForeignAddressProof" />  
+                  <input readonly cFormControl id="clientForeignAddressProofDisplay" plaintext readonly type="text" 
+                    [value]="fileNames['clientForeignAddressProof'] || ''"
+                    (click)="openFilePreview('clientForeignAddressProof')"
+                    style="cursor: pointer; text-decoration: underline;" />    
+                </c-col>
+                <c-col md="6">
+                  <label cLabel for="validationCustom98">Foreign Tax Identification Proof </label>
+                  <input readonly aria-label="file example" cFormControl id="validationCustom98" type="file" accept=".jpg,.jpeg,.pdf" formControlName="clientForeignTaxIdentificationProof"/>  
+                  <input readonly cFormControl id="clientForeignTaxIdentificationProofDisplay" plaintext readonly type="text" 
+                    [value]="fileNames['clientForeignTaxIdentificationProof'] || ''"
+                    (click)="openFilePreview('clientForeignTaxIdentificationProof')"
+                    style="cursor: pointer; text-decoration: underline;" />         
+                </c-col>
+                <c-col md="6">
+                  <label cLabel for="validationCustom99">Cancelled Cheque copy  </label>
+                  <input readonly aria-label="file example" cFormControl id="validationCustom99" type="file" accept=".jpg,.jpeg,.pdf" formControlName="clientCancelledChequeCopy"/> 
+                  <input readonly cFormControl id="clientCancelledChequeCopyDisplay" plaintext readonly type="text" 
+                    [value]="fileNames['clientCancelledChequeCopy'] || ''"
+                    (click)="openFilePreview('clientCancelledChequeCopy')"
+                    style="cursor: pointer; text-decoration: underline;" />    
+                </c-col>
+                <c-col md="6">
+                  <label cLabel for="validationCustom100">Bank Account Statement or Passbook with Latest Entry </label>
+                  <input readonly aria-label="file example" cFormControl id="validationCustom100" type="file" accept=".jpg,.jpeg,.pdf" formControlName="clientBankAccountStatementOrPassbook"/>   
+                  <input readonly cFormControl id="clientBankAccountStatementOrPassbookDisplay" plaintext readonly type="text" 
+                    [value]="fileNames['clientBankAccountStatementOrPassbook'] || ''"
+                    (click)="openFilePreview('clientBankAccountStatementOrPassbook')"
+                    style="cursor: pointer; text-decoration: underline;" />          
+                </c-col>
+                <c-col md="6">
+                  <label cLabel for="validationCustom101">Children Birth Certificate  </label>
+                  <input readonly aria-label="file example" cFormControl id="validationCustom101" type="file" accept=".jpg,.jpeg,.pdf" formControlName="clientChildrenBirthCertificate"/> 
+                  <input readonly cFormControl id="clientChildrenBirthCertificateDisplay" plaintext readonly type="text" 
+                    [value]="fileNames['clientChildrenBirthCertificate'] || ''"
+                    (click)="openFilePreview('clientChildrenBirthCertificate')"
+                    style="cursor: pointer; text-decoration: underline;" />             
+                </c-col>
+                <c-col md="6">
+                  <label cLabel for="validationCustom120">Upload Document </label>
+                  <input readonly aria-label="file example" cFormControl id="validationCustom120" type="file" accept=".jpg,.jpeg,.pdf" formControlName="clientPowerOfAttorneyUpload"/> 
+                  <input readonly cFormControl id="clientPowerOfAttorneyUploadDisplay" plaintext readonly type="text" 
+                    [value]="fileNames['clientPowerOfAttorneyUpload'] || ''"
+                    (click)="openFilePreview('clientPowerOfAttorneyUpload')"
+                    style="cursor: pointer; text-decoration: underline;" />    
+                </c-col>
+              </c-row>
+            </c-col>
+          </div>
+        </form>
+      </c-card-body>
+    </c-card>
+    <c-card class="mb-4">
+      <c-card-header>
+        <strong>Bank Details</strong>
+      </c-card-header>
+      <c-card-body>        
+        <form #customStylesForm="ngForm" [formGroup]="clientViewForm" 
+        cForm
+        class="row g-3 needs-validation"
+      >
+        <div class="row mt-4">  
+          
+          <div formArrayName="bank" *ngFor="let banks of bank.controls; let ide=index">
+            <c-col [formGroupName]="ide">
+              <c-row>
+                <h5>Bank {{ide + 1}}</h5>
+                <c-col [cFormFloating]  md="6">
+                  <select  cSelect cFormControl id="bankName{{ide}}"  formControlName="clientBankName">
+                    <option value="null" disabled>Select a Bank</option>
+                    <option [value]="item.id" *ngFor="let item of bankName">{{ item.bankName }}</option>
+                  </select>   
+                  <label class="ms-2" cLabel for="bankName{{ide}}">Bank Name</label>
+                </c-col>
+                <c-col [cFormFloating]  md="6">
+                  <input readonly  class="mb-3" placeholder cFormControl id="bankAccountNo{{ide}}" formControlName="clientBankAccountNo"  type="text" />
+                  <label class="ms-2" cLabel for="bankAccountNo{{ide}}">Bank Account No</label>
+                </c-col>
+                <c-col [cFormFloating]  md="6">
+                  <select  cSelect cFormControl id="bankAccountType{{ide}}"  formControlName="clientBankAccountType">
+                    <option value="null" disabled>Select an Account Type</option>
+                    <option [value]="item.id" *ngFor="let item of accountType">{{ item.accountTypeName }}</option>
+                  </select>
+                  <label class="ms-2" cLabel for="bankAccountType{{ide}}">Bank Account Type</label>
+                </c-col>
+                <c-col [cFormFloating]  md="6">
+                  <input readonly  class="mb-3" placeholder cFormControl id="bankIfsc{{ide}}" formControlName="clientBankIfsc"  type="text" />
+                  <label class="ms-2" cLabel for="bankIfsc{{ide}}">Bank IFSC</label>
+                </c-col>
+                <c-col [cFormFloating]  md="6">
+                  <input readonly  class="mb-3" placeholder cFormControl id="bankMicr{{ide}}" formControlName="clientBankMicr"  type="text" />
+                  <label class="ms-2" cLabel for="bankMicr{{ide}}">Bank MICR</label>
+                </c-col>
+                <c-col [cFormFloating]  md="6">
+                  <input readonly  class="mb-3" placeholder cFormControl id="bankAddress{{ide}}" formControlName="clientBankAddress"  type="text" />
+                  <label class="ms-2" cLabel for="bankAddress{{ide}}">Bank Address</label>
+                </c-col>
+                <c-col [cFormFloating]  md="6">
+                  <input readonly  class="mb-3" placeholder cFormControl id="bankBranch{{ide}}" formControlName="clientBankBranch"  type="text" />
+                  <label class="ms-2" cLabel for="bankBranch{{ide}}">Bank Branch</label>
+                </c-col>
+                <c-col [cFormFloating]  md="6">
+                  <input readonly  class="mb-3" placeholder cFormControl id="bankCity{{ide}}" formControlName="clientBankCity"  type="text" />
+                  <label class="ms-2" cLabel for="bankCity{{ide}}">Bank City</label>
+                </c-col>
+                <c-col [cFormFloating]  md="6">
+                  <input readonly  class="mb-3" placeholder cFormControl id="bankPincode{{ide}}" formControlName="clientBankPincode"  type="text" />
+                  <label class="ms-2" cLabel for="bankPincode{{ide}}">Bank Pincode</label>
+                </c-col>
+                <c-col [cFormFloating]  md="6">
+                  <select  cSelect cFormControl id="bankPrimary{{ide}}"  formControlName="clientAccountPreference">
+                    <option value="null">Select a Account Preference</option>
+                    <option [value]="item.id" *ngFor="let item of accountPreference">{{ item.accountPreferenceName }}</option>
+                  </select>
+                  <label class="ms-2" cLabel for="bankPrimary{{ide}}">Account Preference</label>
+                </c-col>
+              </c-row>
+            </c-col>
+          </div>
+        </div>
+      </form>
+      </c-card-body>
+    </c-card>
+    <c-card class="mb-4">
+      <c-card-header>
+        <strong>Other Details</strong>
+      </c-card-header>
+      <c-card-body>        
+        <form #customStylesForm="ngForm" [formGroup]="clientViewForm" 
+        cForm
+        class="row g-3 needs-validation"
+      >
+        <div class="row mt-4">  
+          
+          <h3>Other Country Tax If Applicable</h3>
+          <c-col formGroupName="tax" md="12">
+            <c-row>
+              <c-col [cFormFloating] md="6">
+                <input readonly  class="mb-3" placeholder cFormControl id="validationCustom112"  type="text" formControlName="clientTaxIdDetail"/>
+                <label class="ms-2" cLabel for="validationCustom112">Tax Id</label>
+              </c-col>
+              <c-col [cFormFloating] md="6">
+                <input readonly  class="mb-3" placeholder cFormControl id="validationCustom113"  type="text" formControlName="clientTaxIdNo"/>          
+                <label class="ms-2" cLabel for="validationCustom113">Tax Id No</label>
+              </c-col>
+              <c-col [cFormFloating] md="6">
+                <select  cSelect cFormControl id="validationCustom114"  formControlName="clientTaxCountry">
+                  <option value="null" disabled selected>Select a Country</option>
+                  <option [value]="item.id" *ngFor="let item of countries">{{ item.name }}</option>
+                </select>           
+                <label class="ms-2" cLabel for="validationCustom114">Tax Country Other Than India</label>
+              </c-col>
+            </c-row>
+          </c-col>
+          <ng-container *ngIf="showClientGuardianFields">
+            <h3>Guardian Details</h3>
+            <c-col formGroupName="guardian" md="12">
+              <c-row>
+                <c-col [cFormFloating] md="6">
+                  <input readonly  class="mb-3" placeholder cFormControl id="validationCustom115" formControlName="clientGuardianName" type="text" required />
+                  <label class="ms-2" cLabel for="validationCustom115">Guardian Name</label>
+                </c-col>
+                <c-col [cFormFloating] md="6">
+                  <select cSelect cFormControl id="validationCustom116" formControlName="clientGuardianRelation" required>
+                    <option value="null" disabled>Select a Relation</option>
+                    <option [value]="item.id" *ngFor="let item of relation">{{ item.relationship }}</option>
+                  </select>
+                  <label class="ms-2" cLabel for="validationCustom116">Guardian Relationship</label>
+                </c-col>
+                <c-col [cFormFloating] md="6">
+                  <input readonly  class="mb-3" placeholder cFormControl id="validationCustom117" formControlName="clientGuardianPanNo" type="text" required/>
+                  <label class="ms-2" cLabel for="validationCustom117">Guardian PAN No</label>
+                </c-col>
+              </c-row>
+            </c-col>
+          </ng-container>
+          <h3>Power Of Attorney</h3>
+          <c-col formGroupName="attorney" md="12">
+            <c-row>
+              <c-col [cFormFloating] md="6">
+                <input readonly  class="mb-3" placeholder cFormControl id="validationCustom118"  type="text" formControlName="clientPowerOfAttorneyName"/>          
+                <label class="ms-2" cLabel for="validationCustom118">Power Of Attorney Name</label>
+              </c-col>
+              <c-col [cFormFloating] md="6">
+                <input readonly  class="mb-3" placeholder cFormControl id="validationCustom119"  type="text" formControlName="clientPowerOfAttorneyPanNo"/>          
+              <label class="ms-2" cLabel for="validationCustom119">PAN No</label>
+              </c-col>
+            </c-row>
+          </c-col>
+        </div>
+      </form>
+      </c-card-body>
+    </c-card>
+  </c-col>
+</c-row>

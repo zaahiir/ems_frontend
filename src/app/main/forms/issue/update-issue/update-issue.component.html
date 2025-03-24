@@ -1,0 +1,63 @@
+<c-row ngPreserveWhitespaces>
+  <c-col xs="12">
+    <c-card class="mb-4">
+      <c-card-header>
+        <strong>Update Issue</strong>
+      </c-card-header>
+      <c-card-body>
+        <form #customStylesForm="ngForm"
+          [formGroup]="issueUpdateForm"
+          (ngSubmit)="onSubmit()"
+          [validated]="customStylesValidated"
+          cForm
+          class="row g-3 needs-validation"
+        >
+          <c-col [cFormFloating]="true" md="6">
+            <select cSelect cFormControl id="validationCustom01" formControlName="issueClientName" required>
+              <option value="" disabled selected>Select a Client Name</option>
+              <option [value]="item.id" *ngFor="let item of clients">{{ item.clientName }}</option>
+            </select>
+            <label cLabel for="validationCustom01" class="ms-2">Client Name</label>
+            <c-form-feedback [valid]="false" *ngIf="f['issueClientName'].errors && (f['issueClientName'].touched || submitted)">Please select a Client Name.</c-form-feedback>
+          </c-col>
+          
+          <c-col [cFormFloating]="true" md="6">
+            <select cSelect cFormControl id="validationCustom02" formControlName="issueType" required (change)="onIssueTypeChange()">
+              <option value="" disabled selected>Select an Issue Type</option>
+              <option [value]="item.id" *ngFor="let item of issueTypes">{{ item.issueTypeName }}</option>
+            </select>
+            <label cLabel for="validationCustom02" class="ms-2">Issue Type</label>
+            <c-form-feedback [valid]="false" *ngIf="f['issueType'].errors && (f['issueType'].touched || submitted)">Please provide an Issue Type.</c-form-feedback>
+          </c-col>
+          
+          <c-col [cFormFloating]="true" md="6">
+            <input cFormControl id="validationCustom03" formControlName="issueDate" required type="date" placeholder="Issue Date" (change)="onIssueDateChange()" />
+            <label cLabel for="validationCustom03" class="ms-2">Issue Date</label>
+            <c-form-feedback [valid]="false" *ngIf="f['issueDate'].errors && (f['issueDate'].touched || submitted)">Please select an Issue Date.</c-form-feedback>
+          </c-col>
+          
+          <c-col [cFormFloating]="true" md="6">
+            <input cFormControl id="validationCustom04" formControlName="issueResolutionDate" required type="date" placeholder="Issue Resolution Date" />
+            <label cLabel for="validationCustom04" class="ms-2">Issue Resolution Date</label>
+            <c-form-feedback [valid]="false" *ngIf="f['issueResolutionDate'].errors && (f['issueResolutionDate'].touched || submitted)">Please select an Issue Resolution Date.</c-form-feedback>
+          </c-col>
+          
+          <c-col [cFormFloating]="true">
+            <textarea cFormControl id="validationCustom05" formControlName="issueDescription" rows="3" required placeholder="Description"></textarea>
+            <label cLabel for="validationCustom05" class="ms-2">Description</label>
+            <c-form-feedback [valid]="false" *ngIf="f['issueDescription'].errors && (f['issueDescription'].touched || submitted)">Please provide a Description.</c-form-feedback>
+          </c-col>
+          
+          <c-col xs="12">
+            <button cButton class="me-1" color="primary" type="submit">
+              Update
+            </button>
+            <button (click)="onCancel()" cButton color="secondary" type="reset">
+              Cancel
+            </button>
+          </c-col>
+        </form>
+      </c-card-body>
+    </c-card>
+  </c-col>
+</c-row>

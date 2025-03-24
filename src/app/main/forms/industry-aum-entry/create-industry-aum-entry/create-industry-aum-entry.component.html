@@ -1,0 +1,105 @@
+<c-row ngPreserveWhitespaces>
+  <c-col xs="12">
+    <c-card class="mb-4">
+      <c-card-header>
+        <strong>New Industry AUM Entry Form</strong>
+      </c-card-header>
+      <c-card-body>
+        <form #customStylesForm="ngForm"
+          [formGroup]="industryAumEntryForm"
+          (ngSubmit)="onSubmit()"
+          [validated]="customStylesValidated"
+          cForm
+          class="row g-3 needs-validation"
+        >
+          <c-col [cFormFloating]="true" md="6">
+            <input cFormControl id="validationCustom01" formControlName="industryName" required type="text" placeholder="Name" />
+            <label cLabel for="validationCustom01" class="ms-2">Name</label>
+            <c-form-feedback [valid]="false" *ngIf="f['industryName'].errors && (f['industryName'].touched || submitted)">Please provide a Name.</c-form-feedback>
+          </c-col>
+
+          <c-col [cFormFloating]="true" md="6">
+            <input cFormControl id="validationCustom02" formControlName="industryAumDate" required type="date" placeholder="Date" />
+            <label cLabel for="validationCustom02" class="ms-2">Date</label>
+            <c-form-feedback [valid]="false" *ngIf="f['industryAumDate'].errors && (f['industryAumDate'].touched || submitted)">Please select a date.</c-form-feedback>
+          </c-col>
+
+          <c-col [cFormFloating]="true" md="6">
+            <input cFormControl id="validationCustom03" formControlName="industryAumAmount" required type="text" placeholder="AUM" />
+            <label cLabel for="validationCustom03" class="ms-2">AUM</label>
+            <c-form-feedback [valid]="false" *ngIf="f['industryAumAmount'].errors && (f['industryAumAmount'].touched || submitted)">Please provide an AUM.</c-form-feedback>
+          </c-col>
+
+          <c-col [cFormFloating]="true" md="6">
+            <select cSelect cFormControl id="validationCustom04" formControlName="industryAumMode" required>
+              <option value="" disabled selected>Select a Mode</option>
+              <option [value]="item.id" *ngFor="let item of mode">{{ item.modeName }}</option>
+            </select>
+            <label cLabel for="validationCustom04" class="ms-2">Mode</label>
+            <c-form-feedback [valid]="false" *ngIf="f['industryAumMode'].errors && (f['industryAumMode'].touched || submitted)">Please provide a Mode.</c-form-feedback>
+          </c-col>
+
+          <c-col xs="12">
+            <button cButton class="me-1" color="primary" type="submit">
+              Save
+            </button>
+            <button (click)="onReset()" cButton color="secondary" type="reset">
+              Reset
+            </button>
+          </c-col>
+        </form>
+      </c-card-body>
+    </c-card>
+  </c-col>
+</c-row>
+
+
+<!-- <c-row ngPreserveWhitespaces>
+    <c-col xs="12">
+      <c-card class="mb-4">
+        <c-card-header>
+          <strong>New Industry AUM Entry Form</strong>
+        </c-card-header>
+        <c-card-body>
+          <form #customStylesForm="ngForm"
+          [formGroup]="industryAumEntryForm"
+          (ngSubmit)="onSubmit()"
+          [validated]="customStylesValidated"
+          cForm
+          class="row g-3 needs-validation"
+        >
+        <c-col md="6">
+        <label cLabel for="validationCustom01">Name</label>
+        <input cFormControl id="validationCustom01" formControlName="industryName" required type="text" />
+        <c-form-feedback [valid]="false" *ngIf="f['industryName'].errors && (f['industryName'].touched || submitted)">Please provide a Name.</c-form-feedback>
+        </c-col>
+        <c-col md="6">
+        <label cLabel for="validationCustom02">Date</label>
+        <input cFormControl id="validationCustom02" formControlName="industryAumDate" required type="date" />
+        <c-form-feedback [valid]="false" *ngIf="f['industryAumDate'].errors && (f['industryAumDate'].touched || submitted)">Please select a date.</c-form-feedback>
+        </c-col>
+        <c-col md="6">
+        <label cLabel for="validationCustom03">AUM</label>
+        <input cFormControl id="validationCustom03" formControlName="industryAumAmount" required type="text" />
+        <c-form-feedback [valid]="false" *ngIf="f['industryAumAmount'].errors && (f['industryAumAmount'].touched || submitted)">Please provide an AUM.</c-form-feedback>
+        </c-col>
+        <c-col md="6">
+        <label cLabel for="validationCustom04">Mode </label>
+        <select cSelect cFormControl id="validationCustom04"  formControlName="industryAumMode" required>
+          <option [value]="item.id" *ngFor="let item of mode">{{ item.modeName }}</option>
+        </select>
+        <c-form-feedback [valid]="false" *ngIf="f['industryAumMode'].errors && (f['industryAumMode'].touched || submitted)">Please provide a Siplone.</c-form-feedback>
+        </c-col>
+        <c-col xs="12">
+        <button cButton class="me-1" color="primary" type="submit">
+          Save
+        </button>
+        <button (click)="onReset()" cButton color="secondary" type="reset">
+          Reset
+        </button>
+        </c-col>
+        </form>
+        </c-card-body>
+      </c-card>
+    </c-col>
+  </c-row> -->

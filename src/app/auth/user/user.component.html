@@ -1,0 +1,54 @@
+<c-card>
+  <c-card-header>User Profile</c-card-header>
+  <c-card-body>
+    <c-row>
+      <!-- Employee Details -->
+      <ng-container *ngIf="isEmployee">
+        <c-col md="2">
+          <div *ngIf="userDetails">
+            <img [src]="userDetails.employeePhotoUrl" alt="Employee Photo" width="150" height="150" class="employee-photo">
+          </div>
+        </c-col>
+        <c-col md="2">
+          <div *ngIf="userDetails">
+            <p><strong>Name:</strong> {{ userDetails.employeeName }}</p>
+            <p><strong>User Type:</strong> {{ userDetails.employeeUserType }}</p>
+            <p><strong>Email:</strong> {{ userDetails.employeeEmail }}</p>
+          </div>
+        </c-col>
+        <c-col md="2">
+          <div *ngIf="userDetails">
+            <p><strong>Phone:</strong> {{ userDetails.employeePhone }}</p>
+            <p><strong>Address:</strong> {{ userDetails.employeeAddress }}</p>
+          </div>
+        </c-col>
+        <c-col>
+          <div *ngIf="userDetails">
+            <p><strong>Others:</strong> {{ userDetails.employeeOtherDetail }}</p>
+            <p><a href="/path/to/mobile/app" target="_blank">Download Mobile App</a></p>
+          </div>
+        </c-col>
+      </ng-container>
+
+      <!-- Client Details -->
+      <ng-container *ngIf="isClient">
+        <c-col>
+          <div *ngIf="userDetails">
+            <p><strong>Name:</strong> {{ userDetails.name }}</p>
+            <p><strong>User Type:</strong> {{ userDetails.user_type_name }}</p>
+          </div>
+        </c-col>
+      </ng-container>
+
+      <!-- superuser Details -->
+      <ng-container *ngIf="isSuperUser">
+        <c-col>
+          <div *ngIf="userDetails">
+            <p><strong>Name:</strong> {{ userDetails.name }}</p>
+            <p><strong>User Type:</strong> {{ userDetails.user_type_name }}</p>
+          </div>
+        </c-col>
+      </ng-container>
+    </c-row>
+  </c-card-body>
+</c-card>

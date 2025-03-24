@@ -1,0 +1,132 @@
+<c-row ngPreserveWhitespaces>
+  <c-col xs="12">
+    <c-card class="mb-4">
+      <c-card-header>
+        <strong>New Statement Entry Form</strong>
+      </c-card-header>
+      <c-card-body>
+        <form #customStylesForm="ngForm"  
+          [formGroup]="statementCreateForm"
+          (ngSubmit)="onSubmit()"
+          [validated]="customStylesValidated"
+          cForm
+          class="row g-3 needs-validation"
+        >
+          <c-col [cFormFloating]="true" md="6">
+            <input cFormControl id="validationCustom01" formControlName="statementDate" required type="date" placeholder="Statement Date" />
+            <label cLabel for="validationCustom01" class="ms-2">Statement Date</label>
+            <c-form-feedback [valid]="false" *ngIf="f['statementDate'].errors && (f['statementDate'].touched || submitted)">Please select a Statement Date.</c-form-feedback>
+          </c-col>
+          
+          <c-col [cFormFloating]="true" md="6">
+            <input cFormControl id="validationCustom02" formControlName="statementInvestorName" required type="text" placeholder="Investor Name" />
+            <label cLabel for="validationCustom02" class="ms-2">Investor Name</label>
+            <c-form-feedback [valid]="false" *ngIf="f['statementInvestorName'].errors && (f['statementInvestorName'].touched || submitted)">Please provide an Investor Name.</c-form-feedback>
+          </c-col>
+          
+          <c-col [cFormFloating]="true" md="6">
+            <input cFormControl id="validationCustom03" formControlName="statementInvestorPanNo" required type="text" placeholder="Investor PAN No" />
+            <label cLabel for="validationCustom03" class="ms-2">Investor PAN No</label>
+            <c-form-feedback [valid]="false" *ngIf="f['statementInvestorPanNo'].errors && (f['statementInvestorPanNo'].touched || submitted)">Please provide an Investor PAN No.</c-form-feedback>
+          </c-col>
+          
+          <c-col [cFormFloating]="true" md="6">
+            <input cFormControl id="validationCustom04" formControlName="statementInvestmentDate" required type="date" placeholder="Investment Date" />
+            <label cLabel for="validationCustom04" class="ms-2">Investment Date</label>
+            <c-form-feedback [valid]="false" *ngIf="f['statementInvestmentDate'].errors && (f['statementInvestmentDate'].touched || submitted)">Please select an Investment Date.</c-form-feedback>
+          </c-col>
+          
+          <c-col [cFormFloating]="true" md="6">
+            <select cSelect cFormControl id="validationCustom05" formControlName="statementAmcName" required>
+              <option value="" disabled selected>Select an AMC</option>
+              <option [value]="item.id" *ngFor="let item of amc">{{ item.amcName }}</option>
+            </select>
+            <label cLabel for="validationCustom05" class="ms-2">AMC Name</label>
+            <c-form-feedback [valid]="false" *ngIf="f['statementAmcName'].errors && (f['statementAmcName'].touched || submitted)">Please select an AMC.</c-form-feedback>
+          </c-col>
+          
+          <c-col [cFormFloating]="true" md="6">
+            <input cFormControl id="validationCustom06" formControlName="statementFundName" required type="text" placeholder="Fund Name" />
+            <label cLabel for="validationCustom06" class="ms-2">Fund Name</label>
+            <c-form-feedback [valid]="false" *ngIf="f['statementFundName'].errors && (f['statementFundName'].touched || submitted)">Please provide a Fund Name.</c-form-feedback>
+          </c-col>
+          
+          <c-col [cFormFloating]="true" md="6">
+            <input cFormControl id="validationCustom07" formControlName="statementCostOfInvestment" required type="text" placeholder="Cost of Investment" />
+            <label cLabel for="validationCustom07" class="ms-2">Cost of Investment</label>
+            <c-form-feedback [valid]="false" *ngIf="f['statementCostOfInvestment'].errors && (f['statementCostOfInvestment'].touched || submitted)">Please provide a Cost of Investment.</c-form-feedback>
+          </c-col>
+          
+          <c-col [cFormFloating]="true" md="6">
+            <input cFormControl id="validationCustom08" formControlName="statementCurrentValue" required type="text" placeholder="Current Value" />
+            <label cLabel for="validationCustom08" class="ms-2">Current Value</label>
+            <c-form-feedback [valid]="false" *ngIf="f['statementCurrentValue'].errors && (f['statementCurrentValue'].touched || submitted)">Please provide a Current Value.</c-form-feedback>
+          </c-col>
+          
+          <c-col [cFormFloating]="true" md="6">
+            <input cFormControl id="validationCustom09" formControlName="statementSipDate" required type="date" placeholder="SIP Date" />
+            <label cLabel for="validationCustom09" class="ms-2">SIP Date</label>
+            <c-form-feedback [valid]="false" *ngIf="f['statementSipDate'].errors && (f['statementSipDate'].touched || submitted)">Please select a SIP Date.</c-form-feedback>
+          </c-col>
+          
+          <c-col [cFormFloating]="true" md="6">
+            <input cFormControl id="validationCustom10" formControlName="statementSipAmount" required type="text" placeholder="SIP Amount" />
+            <label cLabel for="validationCustom10" class="ms-2">SIP Amount</label>
+            <c-form-feedback [valid]="false" *ngIf="f['statementSipAmount'].errors && (f['statementSipAmount'].touched || submitted)">Please provide a SIP Amount.</c-form-feedback>
+          </c-col>
+          
+          <c-col [cFormFloating]="true" md="6">
+            <input cFormControl id="validationCustom11" formControlName="statementSwpAmount" required type="text" placeholder="SWP Amount" />
+            <label cLabel for="validationCustom11" class="ms-2">SWP Amount</label>
+            <c-form-feedback [valid]="false" *ngIf="f['statementSwpAmount'].errors && (f['statementSwpAmount'].touched || submitted)">Please provide a SWP Amount.</c-form-feedback>
+          </c-col>
+          
+          <c-col [cFormFloating]="true" md="6">
+            <input cFormControl id="validationCustom12" formControlName="statementSipBankName" required type="text" placeholder="SIP Bank Name" />
+            <label cLabel for="validationCustom12" class="ms-2">SIP Bank Name</label>
+            <c-form-feedback [valid]="false" *ngIf="f['statementSipBankName'].errors && (f['statementSipBankName'].touched || submitted)">Please provide a SIP Bank Name.</c-form-feedback>
+          </c-col>
+          
+          <c-col [cFormFloating]="true" md="6">
+            <input cFormControl id="validationCustom13" formControlName="statementSipBankAccountType" required type="text" placeholder="SIP Bank Account Type" />
+            <label cLabel for="validationCustom13" class="ms-2">SIP Bank Account Type</label>
+            <c-form-feedback [valid]="false" *ngIf="f['statementSipBankAccountType'].errors && (f['statementSipBankAccountType'].touched || submitted)">Please provide a SIP Bank Account Type.</c-form-feedback>
+          </c-col>
+          
+          <c-col [cFormFloating]="true" md="6">
+            <input cFormControl id="validationCustom14" formControlName="statementSipBankAccountLastFourDigit" required type="text" placeholder="SIP Bank Account Last 4 Digits" />
+            <label cLabel for="validationCustom14" class="ms-2">SIP Bank Account Last 4 Digits</label>
+            <c-form-feedback [valid]="false" *ngIf="f['statementSipBankAccountLastFourDigit'].errors && (f['statementSipBankAccountLastFourDigit'].touched || submitted)">Please provide a SIP Bank Account Last 4 Digits.</c-form-feedback>
+          </c-col>
+          
+          <c-col [cFormFloating]="true" md="6">
+            <input cFormControl id="validationCustom15" formControlName="statementPrimaryBankName" required type="text" placeholder="Primary Bank Name" />
+            <label cLabel for="validationCustom15" class="ms-2">Primary Bank Name</label>
+            <c-form-feedback [valid]="false" *ngIf="f['statementPrimaryBankName'].errors && (f['statementPrimaryBankName'].touched || submitted)">Please provide a Primary Bank Name.</c-form-feedback>
+          </c-col>
+          
+          <c-col [cFormFloating]="true" md="6">
+            <input cFormControl id="validationCustom16" formControlName="statementPrimaryBankAccountType" required type="text" placeholder="Primary Bank Account Type" />
+            <label cLabel for="validationCustom16" class="ms-2">Primary Bank Account Type</label>
+            <c-form-feedback [valid]="false" *ngIf="f['statementPrimaryBankAccountType'].errors && (f['statementPrimaryBankAccountType'].touched || submitted)">Please provide a Primary Bank Account Type.</c-form-feedback>
+          </c-col>
+          
+          <c-col [cFormFloating]="true" md="6">
+            <input cFormControl id="validationCustom17" formControlName="statementPrimaryBankAccountLastFourDigit" required type="text" placeholder="Primary Bank Last 4 Digits" />
+            <label cLabel for="validationCustom17" class="ms-2">Primary Bank Last 4 Digits</label>
+            <c-form-feedback [valid]="false" *ngIf="f['statementPrimaryBankAccountLastFourDigit'].errors && (f['statementPrimaryBankAccountLastFourDigit'].touched || submitted)">Please provide a Primary Bank Last 4 Digits.</c-form-feedback>
+          </c-col>
+          
+          <c-col xs="12">
+            <button cButton class="me-1" color="primary" type="submit">
+              Save
+            </button>
+            <button (click)="onReset()" cButton color="secondary" type="reset">
+              Reset
+            </button>
+          </c-col>
+        </form>
+      </c-card-body>
+    </c-card>
+  </c-col>
+</c-row>

@@ -1,0 +1,65 @@
+<c-col xs="12">
+  <c-card class="mb-4">
+    <c-card-body>
+      <form cForm class="row g-3">
+        <div class="col-auto">
+          <a cButton [routerLink]="['/clients/add']" color="primary" role="button">Create Client</a>
+        </div>
+      </form>
+    </c-card-body>
+  </c-card>
+</c-col>
+<c-row ngPreserveWhitespaces>
+    <c-col xs="12">
+      <c-card class="mb-4">
+        <c-card-body>
+          <c-col md="3" class="mb-4 flex justify-content-md-end">
+          <input cFormControl id="validationCustom02" 
+          (input)="search($event)"
+          [(ngModel)]="searchTerm"
+          type="search" 
+          placeholder="search client" />
+          </c-col>
+          <table [hover]="true" [striped]="true" [bordered]="true" cTable>
+            <thead>
+            <tr>
+              <th scope="col">S.No</th>
+              <th scope="col">Client Name</th>
+              <th scope="col">Email</th>
+              <th scope="col">Phone</th>
+              <th scope="col">Action</th>  
+            </tr>
+            </thead>
+            <tbody>
+            <tr *ngFor="let cli of paginatedClient; let i = index">
+              <th>{{ (currentPage - 1) * itemsPerPage + i + 1 }}</th>
+              <td>{{ cli.clientName }}</td>
+              <td>{{ cli.clientEmail }}</td>
+              <td>{{ cli.full_mobile }}</td>
+              <td>
+                <a cButton [routerLink]="['/clients/update',cli.id]" color="btn-transparent" role="button" class="btn-sm text-primary border-0  py-0" [cTooltip]="tooltipEditText" cTooltipPlacement="top"><svg [cIcon]="icons.cilPen" size="xl" title="Edit Icon"></svg></a>
+                <a cButton [routerLink]="['/clients/view',cli.id]" color="btn-transparent" role="button" class="btn-sm text-dark border-0  py-0" [cTooltip]="tooltipViewText" cTooltipPlacement="top"><svg [cIcon]="icons.cilCheck" width="25" title="Share  Icon"></svg></a>
+                <a cButton (click)="shareOnWhatsApp(cli)" color="btn-transparent" role="button" class="btn-sm text-secondary border-0 py-0" [cTooltip]="tooltipShareText" cTooltipPlacement="top"><svg [cIcon]="icons.cilShare" size="xl" title="Share  Icon"></svg></a>
+                <a cButton (click)="deleteClient(cli.id)" color="btn-transparent" role="button" class="btn-sm text-danger border-0 py-0" [cTooltip]="tooltipDeleteText" cTooltipPlacement="top"><svg [cIcon]="icons.cilTrash" width="25" title="Delete Icon"></svg></a>
+              </td>
+            </tr>
+            </tbody>
+          </table>
+          <c-pagination aria-label="Page navigation example" *ngIf="totalItems > itemsPerPage">
+            <c-page-item>
+              <a cPageLink (click)="previousPage()" [attr.aria-disabled]="currentPage === 1">Previous</a>
+            </c-page-item>
+            <c-page-item>
+              <a cPageLink>{{ currentPage }} / {{ totalPages }}</a>
+            </c-page-item>
+            <c-page-item>
+              <a cPageLink (click)="nextPage()" [attr.aria-disabled]="!nextCursor">Next</a>
+            </c-page-item>
+          </c-pagination>
+        </c-card-body>
+      </c-card>
+    </c-col>
+</c-row>
+  
+
+

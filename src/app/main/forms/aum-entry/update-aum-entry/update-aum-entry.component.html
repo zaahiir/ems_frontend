@@ -1,0 +1,64 @@
+<c-row ngPreserveWhitespaces>
+  <c-col xs="12">
+    <c-card class="mb-4">
+      <c-card-header>
+        <strong>Update AUM Entry Form</strong>
+      </c-card-header>
+      <c-card-body>
+        <form #customStylesForm="ngForm"
+          (ngSubmit)="onSubmit()"
+          [formGroup]="aumUpdateForm"
+          [validated]="customStylesValidated"
+          cForm
+          class="row g-3 needs-validation"
+        >
+          <c-col [cFormFloating]="true" md="6">
+            <select cSelect id="validationCustom01" formControlName="aumArnNumber" required>
+              <option value="" disabled selected>Select an ARN</option>
+              <option [value]="item.id" *ngFor="let item of arns">{{ item.arnNumber }}</option>
+            </select>
+            <label cLabel for="validationCustom01" class="ms-2">ARN</label>
+            <c-form-feedback [valid]="false" *ngIf="f['aumArnNumber'].errors && (f['aumArnNumber'].touched || submitted)">Please select an ARN.</c-form-feedback>
+          </c-col>
+
+          <c-col [cFormFloating]="true" md="6">
+            <select cSelect id="validationCustom02" formControlName="aumAmcName" required>
+              <option value="" disabled selected>Select an AMC</option>
+              <option [value]="item.id" *ngFor="let item of amcs">{{ item.amcName }}</option>
+            </select>
+            <label cLabel for="validationCustom02" class="ms-2">AMC</label>
+            <c-form-feedback [valid]="false" *ngIf="f['aumAmcName'].errors && (f['aumAmcName'].touched || submitted)">Please select an AMC.</c-form-feedback>
+          </c-col>
+
+          <c-col [cFormFloating]="true" md="4">
+            <input cFormControl id="validationCustom03" formControlName="aumInvoiceNumber" required type="text" placeholder="Invoice Number" />
+            <label cLabel for="validationCustom03" class="ms-2">Invoice Number</label>
+            <c-form-feedback [valid]="false" *ngIf="f['aumInvoiceNumber'].errors && (f['aumInvoiceNumber'].touched || submitted)">Please provide an Invoice Number.</c-form-feedback>
+          </c-col>
+
+          <c-col [cFormFloating]="true" md="4">
+            <input cFormControl id="validationCustom04" formControlName="aumAmount" required type="number" step="0.01" placeholder="AUM" />
+            <label cLabel for="validationCustom04" class="ms-2">AUM</label>
+            <c-form-feedback [valid]="false" *ngIf="f['aumAmount'].errors && (f['aumAmount'].touched || submitted)">Please provide an AUM.</c-form-feedback>
+          </c-col>
+
+          <c-col [cFormFloating]="true" md="4">
+            <input cFormControl id="validationCustom05" formControlName="aumMonth" required type="month" placeholder="Month" />
+            <label cLabel for="validationCustom05" class="ms-2">Month</label>
+            <c-form-feedback [valid]="false" *ngIf="f['aumMonth'].errors && (f['aumMonth'].touched || submitted)">Please select a month.</c-form-feedback>
+          </c-col>
+
+          <c-col xs="12">
+            <button cButton class="me-1" color="primary" type="submit">
+              Update
+            </button>
+            <button (click)="onCancel()" cButton color="secondary">
+              Cancel
+            </button>
+          </c-col>
+        </form>
+      </c-card-body>
+    </c-card>
+  </c-col>
+</c-row>
+

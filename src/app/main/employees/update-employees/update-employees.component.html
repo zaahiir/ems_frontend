@@ -1,0 +1,171 @@
+<c-row ngPreserveWhitespaces>
+  <c-col xs="12">
+    <c-card class="mb-4">
+      <c-card-header>
+        <strong>Update Employee</strong>
+      </c-card-header>
+      <c-card-body>
+        <!-- General Information Form -->
+        <form #customStylesForm="ngForm"
+              [formGroup]="employeeUpdateForm"
+              (ngSubmit)="onSubmit()"
+              [validated]="customStylesValidated"
+              cForm
+              class="row g-3 needs-validation">
+          
+          <c-col [cFormFloating]="true" md="6">
+            <input cFormControl id="validationCustom01" required formControlName="employeeName" type="text" placeholder="Name" />
+            <label cLabel for="validationCustom01" class="ms-2">Name</label>
+            <c-form-feedback [valid]="false" 
+                             *ngIf="f['employeeName'].errors && (f['employeeName'].touched || submitted)">
+              Please provide a Name.
+            </c-form-feedback>
+          </c-col>
+
+          <c-col [cFormFloating]="true" md="6">
+            <input cFormControl id="validationCustom02" required formControlName="employeeEmail" type="email" placeholder="Email" />
+            <label cLabel for="validationCustom02" class="ms-2">Email</label>
+            <c-form-feedback [valid]="false" 
+                             *ngIf="f['employeeEmail'].errors && (f['employeeEmail'].touched || submitted)">
+              Please provide an Email.
+            </c-form-feedback>
+          </c-col>
+
+          <c-col md="6">
+            <c-input-group class="d-flex">
+              <c-col [cFormFloating]="true" class="w-25">
+                <select cSelect id="countryCode" formControlName="employeeCountryCode" required>
+                  <option value="" disabled selected>Code</option>
+                  <option [value]="country.id" *ngFor="let country of countries">
+                    {{ country.dailCode }}
+                  </option>
+                </select>
+                <label for="countryCode">Country Code</label>
+              </c-col>
+              <c-col [cFormFloating]="true" class="w-75">
+                <input cFormControl id="validationCustom03" required formControlName="employeePhone" type="text" placeholder="Phone Number" />
+                <label cLabel for="validationCustom03" class="ms-2">Phone Number</label>
+              </c-col>
+            </c-input-group>
+            <c-form-feedback [valid]="false" 
+                             *ngIf="(f['employeeCountryCode'].errors && (f['employeeCountryCode'].touched || submitted)) || 
+                                    (f['employeePhone'].errors && (f['employeePhone'].touched || submitted))">
+              Please provide a valid Country Code and Phone Number.
+            </c-form-feedback>
+          </c-col>
+
+          <c-col [cFormFloating]="true" md="6">
+            <textarea cFormControl id="validationCustom05" rows="3" formControlName="employeeAddress" required placeholder="Address"></textarea>
+            <label cLabel for="validationCustom05" class="ms-2">Address</label>
+            <c-form-feedback [valid]="false" 
+                             *ngIf="f['employeeAddress'].errors && (f['employeeAddress'].touched || submitted)">
+              Please provide an Address.
+            </c-form-feedback>
+          </c-col>
+
+          <c-col [cFormFloating]="true" md="6">
+            <textarea cFormControl id="validationCustom06" rows="3" formControlName="employeeOtherDetail" required placeholder="Other Details"></textarea>
+            <label cLabel for="validationCustom06" class="ms-2">Other Details</label>
+            <c-form-feedback [valid]="false" 
+                             *ngIf="f['employeeOtherDetail'].errors && (f['employeeOtherDetail'].touched || submitted)">
+              Please provide Other Details.
+            </c-form-feedback>
+          </c-col>
+
+          <c-col [cFormFloating]="true" md="6">
+            <select cSelect cFormControl id="validationCustom08" formControlName="employeeUserType" required>
+              <option value="" disabled>Select an User Type</option>
+              <option [value]="item.id" *ngFor="let item of userTypes">{{ item.userTypeName }}</option>
+            </select>
+            <label cLabel for="validationCustom08" class="ms-2">User Type</label>
+            <c-form-feedback [valid]="false" 
+                             *ngIf="f['employeeUserType'].errors && (f['employeeUserType'].touched || submitted)">
+              Please select a User Type.
+            </c-form-feedback>
+          </c-col>
+
+          <c-col md="6" class="mt-1">
+            <label cLabel for="validationCustom07" class="mb-0 mt-2">Update File (optional)</label>
+            
+            <!-- Display current file preview/link if one exists -->
+            <div *ngIf="fileUrl" class="mb-3">
+              <p class="mb-1"><strong>Current File:</strong> {{currentFileName}}</p>
+              
+              <!-- Image preview for image files -->
+              <div *ngIf="isImageFile" class="mb-2">
+                <img [src]="fileUrl" 
+                     alt="Employee Image" 
+                     style="max-width: 200px; max-height: 200px;" 
+                     class="border rounded p-1 shadow-sm" />
+              </div>
+              
+              <!-- PDF link for PDF files -->
+              <div *ngIf="isPdfFile" class="mb-2">
+                <a [href]="fileUrl" target="_blank" class="btn btn-sm btn-outline-primary">
+                  <i class="cil-file"></i> View PDF
+                </a>
+              </div>
+            </div>
+            
+            <!-- File input -->
+            <div class="input-group mb-2">
+              <input cFormControl
+                     id="validationCustom07" 
+                     #fileInput
+                     type="file"
+                     (change)="onFileChange($event)"
+                     accept=".jpg,.jpeg,.pdf"
+              />
+              <button cButton color="secondary" type="button" (click)="fileInput.value = ''; selectedFile = null;">
+                Clear
+              </button>
+            </div>
+            
+            <!-- Selected new file display -->
+            <div *ngIf="selectedFile" class="alert alert-info py-2 px-3 mb-2">
+              <small><strong>New file selected:</strong> {{selectedFile.name}}</small>
+            </div>
+            
+            <!-- File error display -->
+            <c-form-feedback [valid]="false" *ngIf="fileError && (submitted || selectedFile)">
+              {{ fileError }}
+            </c-form-feedback>
+          </c-col>
+
+          <c-col xs="12">
+            <button cButton class="me-1" color="primary" type="submit">
+              Update 
+            </button>
+            <button (click)="onCancel()" cButton color="secondary" type="button">
+              Cancel
+            </button>
+            <button (click)="togglePasswordForm()" cButton color="info" type="button" class="ms-1">
+              {{ showPasswordForm ? 'Hide' : 'Show' }} Password Update
+            </button>
+          </c-col>
+        </form>
+
+        <!-- Password Update Form -->
+        <form *ngIf="showPasswordForm"
+              [formGroup]="passwordUpdateForm"
+              (ngSubmit)="onPasswordSubmit()"
+              cForm
+              class="row g-3 needs-validation mt-4">
+          <c-col [cFormFloating]="true" md="6">
+            <input cFormControl id="validationCustom04" formControlName="newPassword" type="password" placeholder="New Password" />
+            <label cLabel for="validationCustom04" class="ms-2">New Password</label>
+            <c-form-feedback [valid]="false" 
+                             *ngIf="passwordForm['newPassword'].errors && (passwordForm['newPassword'].touched || passwordSubmitted)">
+              Please provide a valid Password.
+            </c-form-feedback>
+          </c-col>
+          <c-col xs="12">
+            <button cButton color="primary" type="submit">
+              Update Password
+            </button>
+          </c-col>
+        </form>
+      </c-card-body>
+    </c-card>
+  </c-col>
+</c-row>

@@ -23,8 +23,8 @@ export class UpdateAumEntryComponent implements OnInit {
   loading: boolean = false;
   submitted: boolean = false;
   aumId: string = "0";
-  arns: arnMasterCommonInterface[] = [];  
-  amcs: amcMasterCommonInterface[] = []; 
+  arns: arnMasterCommonInterface[] = [];
+  amcs: amcMasterCommonInterface[] = [];
 
   constructor(
     private fb: FormBuilder,
@@ -32,11 +32,11 @@ export class UpdateAumEntryComponent implements OnInit {
     private route: ActivatedRoute,
     private datePipe: DatePipe,
     private aumEntryService: AumEntryService,
-  ) { 
+  ) {
     this.initForm();
   }
 
-  async ngOnInit(): Promise<void> { 
+  async ngOnInit(): Promise<void> {
     try {
       await Promise.all([this.loadArn(), this.loadAmc()]);
       this.route.params.subscribe(params => {
@@ -53,7 +53,6 @@ export class UpdateAumEntryComponent implements OnInit {
     this.aumUpdateForm = this.fb.group({
       aumArnNumber: ['', Validators.required],
       aumAmcName: ['', Validators.required],
-      aumInvoiceNumber: ['', Validators.required],
       aumAmount: ['', [Validators.required, Validators.min(0)]],
       aumMonth: ['', [Validators.required, Validators.pattern(/^\d{4}-\d{2}$/)]]
     });
@@ -101,7 +100,6 @@ export class UpdateAumEntryComponent implements OnInit {
         this.aumUpdateForm.patchValue({
           aumArnNumber: arnId,
           aumAmcName: amcId,
-          aumInvoiceNumber: aumData.aumInvoiceNumber,
           aumAmount: aumData.aumAmount,
           aumMonth: this.datePipe.transform(aumData.aumMonth, 'yyyy-MM'),
         });
@@ -113,11 +111,11 @@ export class UpdateAumEntryComponent implements OnInit {
       await Swal.fire('Error', 'Failed to load AUM data', 'error');
     }
   }
-  
+
   async onSubmit(): Promise<void> {
     this.customStylesValidated = true;
     this.submitted = true;
-  
+
     if (this.aumUpdateForm.invalid) {
       const missingFields = Object.keys(this.aumUpdateForm.controls)
         .filter(key => this.aumUpdateForm.get(key)?.invalid)
@@ -125,7 +123,6 @@ export class UpdateAumEntryComponent implements OnInit {
           switch (key) {
             case 'aumArnNumber': return 'ARN Number';
             case 'aumAmcName': return 'AMC Name';
-            case 'aumInvoiceNumber': return 'Invoice Number';
             case 'aumAmount': return 'Amount';
             case 'aumMonth': return 'Month';
             default: return key;
@@ -146,21 +143,20 @@ export class UpdateAumEntryComponent implements OnInit {
       });
       return;
     }
-  
+
     if (this.loading) return;
     this.loading = true;
-    
+
     const formData = this.aumUpdateForm.value;
-  
+
     const data = {
       aumArnNumber: formData.aumArnNumber,
       aumAmcName: formData.aumAmcName,
-      aumInvoiceNumber: formData.aumInvoiceNumber,
       aumAmount: formData.aumAmount,
       aumMonth: formData.aumMonth,
       hideStatus: 0,
     };
-  
+
     try {
       const response = await lastValueFrom(this.aumEntryService.processAum(data, this.aumId));
       if (response.code === 1) {

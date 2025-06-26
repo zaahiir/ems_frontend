@@ -8,17 +8,17 @@ import { AumEntryService } from '../../../common-service/aum-entry/aum-entry.ser
 import Swal from 'sweetalert2';
 import { Router } from '@angular/router';
 import { takeUntil } from 'rxjs/operators';
-import { Subject } from 'rxjs';
+import { Subject, forkJoin } from 'rxjs';
 
 @Component({
   selector: 'app-create-daily-entry',
   standalone: true,
   imports: [
-    NgIf, CommonModule, NgClass, NgForOf, RowComponent, ColComponent, 
-    TextColorDirective, CardComponent, CardHeaderComponent, CardBodyComponent, 
-    ReactiveFormsModule, FormFloatingDirective, FormsModule, FormDirective, 
-    FormLabelDirective, FormControlDirective, FormFeedbackComponent, 
-    InputGroupComponent, InputGroupTextDirective, FormSelectDirective, 
+    NgIf, CommonModule, NgClass, NgForOf, RowComponent, ColComponent,
+    TextColorDirective, CardComponent, CardHeaderComponent, CardBodyComponent,
+    ReactiveFormsModule, FormFloatingDirective, FormsModule, FormDirective,
+    FormLabelDirective, FormControlDirective, FormFeedbackComponent,
+    InputGroupComponent, InputGroupTextDirective, FormSelectDirective,
     ButtonDirective, SpinnerComponent
   ],
   templateUrl: './create-daily-entry.component.html',
@@ -35,6 +35,10 @@ export class CreateDailyEntryComponent implements OnInit, OnDestroy {
   amcList: any[] = [];
   fundList: any[] = [];
   issueTypes: any[] = [];
+  transactionModes: any[] = [];
+
+  selectedFile: File | null = null;
+  fileError: string = '';
 
   currentDate: string;
   private destroy$ = new Subject<void>();
@@ -74,28 +78,54 @@ export class CreateDailyEntryComponent implements OnInit, OnDestroy {
       amount: ['', [Validators.required, Validators.min(0)]],
       clientChequeNumber: [''],
       transactionType: ['', Validators.required],
+      transactionMode: ['', Validators.required],
       sipDate: ['', Validators.required],
       transactionAddDetail: ['', Validators.required],
       staffName: [localStorage.getItem('user_name') || localStorage.getItem('username') || '', Validators.required]
     });
   }
 
-  async loadInitialData(): Promise<void> {
+  loadInitialData(): void {
     this.showLoader('Loading data...');
-    try {
-      const [amcsResponse, issueTypesResponse] = await Promise.all([
-        this.amcService.getAmc(),
-        this.issueService.getIssueType()
-      ]);
-  
-      this.amcList = amcsResponse.data;
-      this.issueTypes = issueTypesResponse.data;
-    } catch (error) {
-      Swal.fire('Error', 'Failed to initialize the form. Please try again.', 'error');
-    } finally {
-      this.dataLoading = false;
-      this.hideLoader();
-    }
+
+    // Use forkJoin to handle multiple Observable calls properly
+    forkJoin({
+      amcs: this.amcService.getAmc(),
+      issueTypes: this.issueService.getIssueType(),
+      transactionModes: this.dailyEntryService.getTransactionModes()
+    })
+    .pipe(takeUntil(this.destroy$))
+    .subscribe({
+      next: (responses) => {
+        console.log('API Responses:', responses);
+
+        // Access the data property from each response
+        this.amcList = responses.amcs.data || [];
+        this.issueTypes = responses.issueTypes.data || [];
+
+        // Handle transactionModes which might have different response structure
+        if (Array.isArray(responses.transactionModes)) {
+          // If transactionModes is already an array
+          this.transactionModes = responses.transactionModes;
+        } else if (responses.transactionModes && responses.transactionModes.data) {
+          // If transactionModes has a data property
+          this.transactionModes = responses.transactionModes.data;
+        } else {
+          this.transactionModes = [];
+        }
+
+        console.log('Transaction Modes:', this.transactionModes);
+
+        this.dataLoading = false;
+        this.hideLoader();
+      },
+      error: (error) => {
+        console.error('Error loading initial data:', error);
+        this.dataLoading = false;
+        this.hideLoader();
+        Swal.fire('Error', 'Failed to initialize the form. Please try again.', 'error');
+      }
+    });
   }
 
   setupFormListeners(): void {
@@ -117,15 +147,15 @@ export class CreateDailyEntryComponent implements OnInit, OnDestroy {
     this.showLoader('Loading Funds...');
     this.dailyEntryService.getFundsByAmc(amcId)
       .pipe(takeUntil(this.destroy$))
-      .subscribe(
-        response => {
-          this.fundList = response.data;
+      .subscribe({
+        next: (response) => {
+          this.fundList = response.data || [];
           const fundNameControl = this.dailyEntryForm.get('fundName');
           if (fundNameControl) {
             if (this.fundList.length > 0) {
               fundNameControl.enable();
-              const firstFund = this.fundList[0];
-              fundNameControl.setValue(firstFund.id);
+              // Don't auto-select the first fund, let user choose
+              fundNameControl.setValue('');
             } else {
               fundNameControl.disable();
               fundNameControl.setValue('');
@@ -133,13 +163,14 @@ export class CreateDailyEntryComponent implements OnInit, OnDestroy {
           }
           this.hideLoader();
         },
-        error => {
+        error: (error) => {
+          console.error('Error loading funds:', error);
           this.fundList = [];
           this.dailyEntryForm.get('fundName')?.disable();
           this.hideLoader();
           Swal.fire('Error', 'Failed to load funds for the selected AMC.', 'error');
         }
-      );
+      });
   }
 
   searchClient(): void {
@@ -147,8 +178,9 @@ export class CreateDailyEntryComponent implements OnInit, OnDestroy {
     if (searchTerm) {
       this.showLoader('Searching Client...');
       this.dailyEntryService.getClientDetails(searchTerm)
-        .subscribe(
-          response => {
+        .pipe(takeUntil(this.destroy$))
+        .subscribe({
+          next: (response) => {
             this.hideLoader();
             if (response.code === 1) {
               const clientData = response.data;
@@ -157,11 +189,12 @@ export class CreateDailyEntryComponent implements OnInit, OnDestroy {
               Swal.fire('Not Found', 'No client found with the given PAN or mobile number.', 'info');
             }
           },
-          error => {
+          error: (error) => {
+            console.error('Error searching client:', error);
             this.hideLoader();
             Swal.fire('Error', 'An error occurred while searching for the client.', 'error');
           }
-        );
+        });
     } else {
       Swal.fire('Error', 'Please enter a search term.', 'error');
     }
@@ -176,10 +209,43 @@ export class CreateDailyEntryComponent implements OnInit, OnDestroy {
     });
   }
 
+  onFileChange(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    if (input.files && input.files.length > 0) {
+      const file = input.files[0];
+
+      // Validate file type
+      const allowedTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
+      const allowedExtensions = ['.pdf', '.doc', '.docx'];
+
+      const isValidType = allowedTypes.includes(file.type) ||
+                         allowedExtensions.some(ext => file.name.toLowerCase().endsWith(ext));
+
+      if (!isValidType) {
+        this.fileError = 'Please select a valid file format (PDF, DOC, DOCX only)';
+        this.selectedFile = null;
+        input.value = '';
+        return;
+      }
+
+      // Validate file size (optional - 10MB limit)
+      const maxSize = 10 * 1024 * 1024; // 10MB
+      if (file.size > maxSize) {
+        this.fileError = 'File size must be less than 10MB';
+        this.selectedFile = null;
+        input.value = '';
+        return;
+      }
+
+      this.fileError = '';
+      this.selectedFile = file;
+    }
+  }
+
   onSubmit(): void {
     this.customStylesValidated = true;
     this.submitted = true;
-  
+
     if (this.dailyEntryForm.invalid) {
       const missingFields = this.getMissingRequiredFields();
       if (missingFields.length > 0) {
@@ -187,14 +253,14 @@ export class CreateDailyEntryComponent implements OnInit, OnDestroy {
         return;
       }
     }
-  
+
     if (this.loading) {
       return;
     }
-    
+
     this.loading = true;
     this.showLoader('Submitting...');
-  
+
     const formData = {
       applicationDate: this.dailyEntryForm.get('applicationDate')?.value,
       dailyEntryClientPanNumber: this.dailyEntryForm.get('clientPanNumber')?.value,
@@ -207,17 +273,19 @@ export class CreateDailyEntryComponent implements OnInit, OnDestroy {
       amount: this.dailyEntryForm.get('amount')?.value,
       clientChequeNumber: this.dailyEntryForm.get('clientChequeNumber')?.value || null,
       dailyEntryIssueType: this.dailyEntryForm.get('transactionType')?.value,
+      dailyEntryTranscationMode: this.dailyEntryForm.get('transactionMode')?.value,
       sipDate: this.dailyEntryForm.get('sipDate')?.value,
       staffName: this.dailyEntryForm.get('staffName')?.value,
-      transactionAddDetail: this.dailyEntryForm.get('transactionAddDetail')?.value
+      transactionAddDetail: this.dailyEntryForm.get('transactionAddDetail')?.value,
+      dailyEntryFile: this.selectedFile
     };
-  
-    console.log('Form data being submitted:', formData); // Add this line for debugging
-  
+
+    console.log('Form data being submitted:', formData);
+
     this.dailyEntryService.processDailyEntry(formData)
       .pipe(takeUntil(this.destroy$))
-      .subscribe(
-        response => {
+      .subscribe({
+        next: (response) => {
           this.loading = false;
           this.hideLoader();
           if (response.code === 1) {
@@ -227,13 +295,13 @@ export class CreateDailyEntryComponent implements OnInit, OnDestroy {
             Swal.fire("Failed!", response.message || "Error creating daily entry and issue", "error");
           }
         },
-        error => {
+        error: (error) => {
+          console.error('Error submitting form:', error);
           this.loading = false;
           this.hideLoader();
-          console.error('Error submitting form:', error); // Add this line for debugging
           Swal.fire("Failed!", "An error occurred while processing the entry.", "error");
         }
-      );
+      });
   }
 
   getMissingRequiredFields(): string[] {
@@ -258,7 +326,10 @@ export class CreateDailyEntryComponent implements OnInit, OnDestroy {
       fundName: 'Fund Name',
       amount: 'Amount',
       transactionType: 'Transaction Type',
-      staffName: 'Staff Name'
+      transactionMode: 'Transaction Mode',
+      sipDate: 'SIP Date',
+      staffName: 'Staff Name',
+      transactionAddDetail: 'Transaction Add Detail'
     };
     return displayNames[fieldName] || fieldName;
   }
@@ -290,10 +361,20 @@ export class CreateDailyEntryComponent implements OnInit, OnDestroy {
   onReset(): void {
     this.customStylesValidated = false;
     this.submitted = false;
+    this.selectedFile = null;
+    this.fileError = '';
+
+    // Reset file input
+    const fileInput = document.getElementById('dailyEntryFile') as HTMLInputElement;
+    if (fileInput) {
+      fileInput.value = '';
+    }
+
     this.dailyEntryForm.reset({
       applicationDate: this.currentDate,
-      staffName: localStorage.getItem('staffName') || ''
+      staffName: localStorage.getItem('user_name') || localStorage.getItem('username') || ''
     });
+
     this.fundList = [];
     this.dailyEntryForm.get('fundName')?.disable();
   }

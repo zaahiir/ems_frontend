@@ -22,24 +22,23 @@ export class CreateAumEntryComponent implements OnInit {
   loading: boolean = false;
   submitted: boolean = false;
 
-  arn: arnMasterCommonInterface[] = [];  
-  amc: amcMasterCommonInterface[] = [];  
+  arn: arnMasterCommonInterface[] = [];
+  amc: amcMasterCommonInterface[] = [];
 
   constructor(
     private fb: FormBuilder,
     private router: Router,
     private aumEntryService: AumEntryService,
-  ) { 
+  ) {
     this.aumEntryForm = this.fb.group({
       aumArnNumber: ['', Validators.required],
       aumAmcName: ['', Validators.required],
-      aumInvoiceNumber: ['', Validators.required],
       aumAmount: ['', [Validators.required, Validators.min(0)]],
       aumMonth: ['', [Validators.required, Validators.pattern(/^\d{4}-\d{2}$/)]]
     });
   }
 
-  async ngOnInit(): Promise<void> { 
+  async ngOnInit(): Promise<void> {
     try {
       await Promise.all([this.loadArn(), this.loadAmc()]);
     } catch (error) {
@@ -81,7 +80,6 @@ export class CreateAumEntryComponent implements OnInit {
           switch (key) {
             case 'aumArnNumber': return 'ARN Number';
             case 'aumAmcName': return 'AMC Name';
-            case 'aumInvoiceNumber': return 'Invoice Number';
             case 'aumAmount': return 'Amount';
             case 'aumMonth': return 'Month';
             default: return key;
@@ -111,7 +109,6 @@ export class CreateAumEntryComponent implements OnInit {
     const data = {
       aumArnNumber: this.f['aumArnNumber'].value,
       aumAmcName: this.f['aumAmcName'].value,
-      aumInvoiceNumber: this.f['aumInvoiceNumber'].value,
       aumAmount: this.f['aumAmount'].value,
       aumMonth: formattedMonth,
       hideStatus: 0,

@@ -19,21 +19,21 @@
                 Search
               </button>
             </c-input-group>
-          </c-col> 
-          
+          </c-col>
+
           <c-col [cFormFloating]="true" md="6">
-          </c-col>    
+          </c-col>
 
           <c-col [cFormFloating]="true" md="6">
             <input cFormControl id="applicationDate" formControlName="applicationDate" required type="date" placeholder="Application Date" />
             <label cLabel for="applicationDate" class="ms-2">Application Date</label>
           </c-col>
-          
+
           <c-col [cFormFloating]="true" md="6">
             <input cFormControl id="clientPanNumber" formControlName="clientPanNumber" required type="text" placeholder="Client PAN" readonly />
             <label cLabel for="clientPanNumber" class="ms-2">Client PAN</label>
-          </c-col>       
-          
+          </c-col>
+
           <c-col [cFormFloating]="true" md="6">
             <input cFormControl id="clientName" formControlName="clientName" required type="text" placeholder="Client Name" readonly />
             <label cLabel for="clientName" class="ms-2">Client Name</label>
@@ -51,13 +51,13 @@
               </c-col>
             </c-input-group>
           </c-col>
-          
+
           <c-col [cFormFloating]="true" md="6">
             <input cFormControl id="clientFolioNumber" formControlName="clientFolioNumber" type="text" placeholder="Client Folio Number" />
             <label cLabel for="clientFolioNumber" class="ms-2">Client Folio Number</label>
             <c-form-feedback [valid]="false" *ngIf="f['clientFolioNumber'].errors && (f['clientFolioNumber'].touched || submitted)">Please provide a Folio Number.</c-form-feedback>
           </c-col>
-          
+
           <c-col [cFormFloating]="true" md="6">
             <select cSelect id="fundHouse" formControlName="fundHouse" required>
               <option value="" disabled selected>Select Fund House</option>
@@ -66,7 +66,7 @@
             <label cLabel for="fundHouse" class="ms-2">Fund House</label>
             <c-form-feedback [valid]="false" *ngIf="f['fundHouse'].errors && (f['fundHouse'].touched || submitted)">Please select a Fund House.</c-form-feedback>
           </c-col>
-          
+
           <c-col [cFormFloating]="true" md="6">
             <select cSelect id="fundName" formControlName="fundName" required>
               <option value="" disabled selected>Select Fund Name</option>
@@ -75,13 +75,13 @@
             <label cLabel for="fundName" class="ms-2">Fund Name</label>
             <c-form-feedback [valid]="false" *ngIf="f['fundName'].errors && (f['fundName'].touched || submitted)">Please select a Fund Name.</c-form-feedback>
           </c-col>
-          
+
           <c-col [cFormFloating]="true" md="6">
             <input cFormControl id="amount" formControlName="amount" required type="number" placeholder="Amount" />
             <label cLabel for="amount" class="ms-2">Amount</label>
             <c-form-feedback [valid]="false" *ngIf="f['amount'].errors && (f['amount'].touched || submitted)">Please provide a valid Amount.</c-form-feedback>
           </c-col>
-          
+
           <c-col [cFormFloating]="true" md="6">
             <input cFormControl id="clientChequeNumber" formControlName="clientChequeNumber" type="text" placeholder="Client Cheque Number" />
             <label cLabel for="clientChequeNumber" class="ms-2">Client Cheque Number</label>
@@ -96,7 +96,16 @@
             <label cLabel for="transactionType" class="ms-2">Transaction Type</label>
             <c-form-feedback [valid]="false" *ngIf="f['transactionType'].errors && (f['transactionType'].touched || submitted)">Please select a Transaction Type.</c-form-feedback>
           </c-col>
-          
+
+          <c-col [cFormFloating]="true" md="6">
+            <select cSelect id="transactionMode" formControlName="transactionMode" required>
+              <option value="" disabled selected>Select Transaction Mode</option>
+              <option [value]="mode.id" *ngFor="let mode of transactionModes">{{ mode.transcationModeName }}</option>
+            </select>
+            <label cLabel for="transactionMode" class="ms-2">Transaction Mode</label>
+            <c-form-feedback [valid]="false" *ngIf="f['transactionMode'].errors && (f['transactionMode'].touched || submitted)">Please select a Transaction Mode.</c-form-feedback>
+          </c-col>
+
           <c-col [cFormFloating]="true" md="6">
             <input cFormControl id="sipDate" formControlName="sipDate" type="date" placeholder="SIP Date" required />
             <label cLabel for="sipDate" class="ms-2">SIP Date</label>
@@ -106,7 +115,22 @@
             <input cFormControl id="staffName" formControlName="staffName" required type="text" placeholder="Staff Name" readonly />
             <label cLabel for="staffName" class="ms-2">Staff Name</label>
           </c-col>
-          
+
+          <c-col md="6">
+            <div class="mb-0">
+              <label cLabel for="dailyEntryFile" class="form-label">Upload Document (PDF, DOC, DOCX only)</label>
+              <input
+                cFormControl
+                id="dailyEntryFile"
+                type="file"
+                class="form-control"
+                accept=".pdf,.doc,.docx"
+                (change)="onFileChange($event)"
+              />
+              <c-form-feedback [valid]="false" *ngIf="fileError">{{ fileError }}</c-form-feedback>
+            </div>
+          </c-col>
+
           <c-col [cFormFloating]="true" md="12">
             <textarea cFormControl id="transactionAddDetail" formControlName="transactionAddDetail" rows="3" placeholder="Transaction Add Detail" required></textarea>
             <label cLabel for="transactionAddDetail" class="ms-2">Transaction Add Detail</label>

@@ -34,7 +34,6 @@
           <c-col [cFormFloating]="true" md="6">
             <input cFormControl id="clientPanNumber" formControlName="clientPanNumber" required type="text" placeholder="Client PAN" readonly/>
             <label cLabel for="clientPanNumber" class="ms-2">Client PAN</label>
-            <c-form-feedback [valid]="false" *ngIf="f['clientPanNumber'].errors && (f['clientPanNumber'].touched || submitted)">Please enter a valid PAN or Mobile number.</c-form-feedback>
           </c-col>
 
 

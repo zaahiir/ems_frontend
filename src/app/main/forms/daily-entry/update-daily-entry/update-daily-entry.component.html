@@ -111,8 +111,10 @@
             <label cLabel for="sipDate" class="ms-2">SIP Date</label>
           </c-col>
 
+          <!-- Updated file upload section in the HTML template -->
           <c-col md="6">
             <div class="mb-0">
+              <!-- File Input -->
               <input
                 cFormControl
                 id="dailyEntryFile"
@@ -121,8 +123,59 @@
                 accept=".pdf,.doc,.docx"
                 (change)="onFileChange($event)"
               />
-              <label cLabel for="dailyEntryFile" class="form-label"> <small>Upload Document: Accepted formats: PDF, DOC, DOCX</small></label>
+              <label cLabel for="dailyEntryFile" class="form-label">
+                <small>Upload Document: Accepted formats: PDF, DOC, DOCX</small>
+              </label>
+
+              <!-- Error Message -->
               <c-form-feedback [valid]="false" *ngIf="fileError">{{ fileError }}</c-form-feedback>
+
+              <!-- Existing File Display -->
+              <div *ngIf="hasExistingFile" class="mt-2 p-2 border rounded bg-light">
+                <div class="d-flex align-items-center justify-content-between">
+                  <div class="d-flex align-items-center">
+                    <span class="me-2">{{ getFileIcon(existingFileName) }}</span>
+                    <a
+                      href="javascript:void(0)"
+                      (click)="onExistingFileClick()"
+                      class="text-primary text-decoration-none"
+                      [title]="canViewInBrowser(existingFileName) ? 'Click to view' : 'Click to download'"
+                    >
+                      <small><strong>{{ existingFileName }}</strong></small>
+                    </a>
+                    <span class="ms-2 badge bg-secondary">
+                      <small>{{ canViewInBrowser(existingFileName) ? 'View' : 'Download' }}</small>
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    class="btn btn-sm btn-outline-danger"
+                    (click)="removeExistingFile()"
+                    title="Remove existing file"
+                  >
+                    <small>✕</small>
+                  </button>
+                </div>
+                <div class="mt-1">
+                  <small class="text-muted">Existing document</small>
+                </div>
+              </div>
+
+              <!-- New File Preview -->
+              <div *ngIf="selectedFile" class="mt-2 p-2 border rounded bg-success bg-opacity-10">
+                <div class="d-flex align-items-center">
+                  <span class="me-2">{{ getFileIcon(selectedFile.name) }}</span>
+                  <span class="text-success">
+                    <small><strong>{{ selectedFile.name }}</strong></small>
+                  </span>
+                  <span class="ms-2 badge bg-success">
+                    <small>New</small>
+                  </span>
+                </div>
+                <div class="mt-1">
+                  <small class="text-muted">New file selected ({{ (selectedFile.size / 1024 / 1024).toFixed(2) }} MB)</small>
+                </div>
+              </div>
             </div>
           </c-col>
 

@@ -39,6 +39,8 @@ export class CreateDailyEntryComponent implements OnInit, OnDestroy {
 
   selectedFile: File | null = null;
   fileError: string = '';
+  selectedFileName: string = '';
+  filePreviewUrl: string = '';
 
   currentDate: string;
   private destroy$ = new Subject<void>();
@@ -62,6 +64,10 @@ export class CreateDailyEntryComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
+    // Clean up object URLs to prevent memory leaks
+    if (this.filePreviewUrl) {
+      URL.revokeObjectURL(this.filePreviewUrl);
+    }
   }
 
   initForm(): FormGroup {
@@ -219,27 +225,75 @@ export class CreateDailyEntryComponent implements OnInit, OnDestroy {
       const allowedExtensions = ['.pdf', '.doc', '.docx'];
 
       const isValidType = allowedTypes.includes(file.type) ||
-                         allowedExtensions.some(ext => file.name.toLowerCase().endsWith(ext));
+                        allowedExtensions.some(ext => file.name.toLowerCase().endsWith(ext));
 
       if (!isValidType) {
         this.fileError = 'Please select a valid file format (PDF, DOC, DOCX only)';
-        this.selectedFile = null;
-        input.value = '';
+        this.resetFileSelection(input);
         return;
       }
 
-      // Validate file size (optional - 10MB limit)
+      // Validate file size (10MB limit)
       const maxSize = 10 * 1024 * 1024; // 10MB
       if (file.size > maxSize) {
         this.fileError = 'File size must be less than 10MB';
-        this.selectedFile = null;
-        input.value = '';
+        this.resetFileSelection(input);
         return;
       }
 
+      // File is valid
       this.fileError = '';
       this.selectedFile = file;
+      this.selectedFileName = file.name;
+
+      // Create preview URL for files (if needed)
+      if (this.filePreviewUrl) {
+        URL.revokeObjectURL(this.filePreviewUrl);
+      }
+      this.filePreviewUrl = URL.createObjectURL(file);
+
+      console.log('File selected successfully:', {
+        name: file.name,
+        size: file.size,
+        type: file.type,
+        lastModified: new Date(file.lastModified)
+      });
+    } else {
+      this.resetFileSelection(input);
     }
+  }
+
+  private resetFileSelection(input?: HTMLInputElement): void {
+    this.selectedFile = null;
+    this.selectedFileName = '';
+    if (this.filePreviewUrl) {
+      URL.revokeObjectURL(this.filePreviewUrl);
+      this.filePreviewUrl = '';
+    }
+    if (input) {
+      input.value = '';
+    }
+  }
+
+  // Method to remove selected file
+  removeSelectedFile(): void {
+    this.resetFileSelection();
+    this.fileError = '';
+
+    // Clear the file input
+    const fileInput = document.getElementById('dailyEntryFile') as HTMLInputElement;
+    if (fileInput) {
+      fileInput.value = '';
+    }
+  }
+
+  // Method to format file size for display
+  formatFileSize(bytes: number): string {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   }
 
   onSubmit(): void {
@@ -261,33 +315,48 @@ export class CreateDailyEntryComponent implements OnInit, OnDestroy {
     this.loading = true;
     this.showLoader('Submitting...');
 
-    const formData = {
-      applicationDate: this.dailyEntryForm.get('applicationDate')?.value,
-      dailyEntryClientPanNumber: this.dailyEntryForm.get('clientPanNumber')?.value,
-      dailyEntryClientName: this.dailyEntryForm.get('clientName')?.value,
-      clientFolioNumber: this.dailyEntryForm.get('clientFolioNumber')?.value || null,
-      clientPhoneCountryCode: this.dailyEntryForm.get('clientPhoneCountryCode')?.value,
-      clientMobileNumber: this.dailyEntryForm.get('clientMobileNumber')?.value,
-      dailyEntryFundHouse: this.dailyEntryForm.get('fundHouse')?.value,
-      dailyEntryFundName: this.dailyEntryForm.get('fundName')?.value,
-      amount: this.dailyEntryForm.get('amount')?.value,
-      clientChequeNumber: this.dailyEntryForm.get('clientChequeNumber')?.value || null,
-      dailyEntryIssueType: this.dailyEntryForm.get('transactionType')?.value,
-      dailyEntryTranscationMode: this.dailyEntryForm.get('transactionMode')?.value,
-      sipDate: this.dailyEntryForm.get('sipDate')?.value,
-      staffName: this.dailyEntryForm.get('staffName')?.value,
-      transactionAddDetail: this.dailyEntryForm.get('transactionAddDetail')?.value,
-      dailyEntryFile: this.selectedFile
-    };
+    // Create FormData object for proper file upload
+    const formData = new FormData();
 
-    console.log('Form data being submitted:', formData);
+    // Append all form fields with correct field names matching backend expectations
+    formData.append('applicationDate', this.dailyEntryForm.get('applicationDate')?.value || '');
+    formData.append('dailyEntryClientPanNumber', this.dailyEntryForm.get('clientPanNumber')?.value || '');
+    formData.append('dailyEntryClientName', this.dailyEntryForm.get('clientName')?.value || '');
+    formData.append('clientFolioNumber', this.dailyEntryForm.get('clientFolioNumber')?.value || '');
+    formData.append('clientPhoneCountryCode', this.dailyEntryForm.get('clientPhoneCountryCode')?.value || '');
+    formData.append('clientMobileNumber', this.dailyEntryForm.get('clientMobileNumber')?.value || '');
+    formData.append('dailyEntryFundHouse', this.dailyEntryForm.get('fundHouse')?.value || '');
+    formData.append('dailyEntryFundName', this.dailyEntryForm.get('fundName')?.value || '');
+    formData.append('amount', this.dailyEntryForm.get('amount')?.value || '');
+    formData.append('clientChequeNumber', this.dailyEntryForm.get('clientChequeNumber')?.value || '');
+    formData.append('dailyEntryIssueType', this.dailyEntryForm.get('transactionType')?.value || '');
+    formData.append('dailyEntryTranscationMode', this.dailyEntryForm.get('transactionMode')?.value || '');
+    formData.append('sipDate', this.dailyEntryForm.get('sipDate')?.value || '');
+    formData.append('staffName', this.dailyEntryForm.get('staffName')?.value || '');
+    formData.append('transactionAddDetail', this.dailyEntryForm.get('transactionAddDetail')?.value || '');
 
-    this.dailyEntryService.processDailyEntry(formData)
+    // Append file if selected - this is crucial
+    if (this.selectedFile) {
+      formData.append('dailyEntryFile', this.selectedFile, this.selectedFile.name);
+      console.log('File being uploaded:', this.selectedFile.name, 'Size:', this.selectedFile.size);
+    }
+
+    // Debug: Log all FormData entries using forEach (compatible with older browsers)
+    console.log('FormData being submitted:');
+    if (formData && typeof formData.forEach === 'function') {
+      formData.forEach((value, key) => {
+        console.log(key + ': ' + (value instanceof File ? `File: ${value.name} (${value.size} bytes)` : value));
+      });
+    }
+
+    // Use the updated service method that handles FormData properly
+    this.dailyEntryService.processDailyEntryWithFormData(formData)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (response) => {
           this.loading = false;
           this.hideLoader();
+          console.log('Server response:', response);
           if (response.code === 1) {
             Swal.fire("Added!", "Daily entry and issue created successfully", "success");
             this.router.navigate(['/forms/dailyEntry']);
@@ -299,7 +368,16 @@ export class CreateDailyEntryComponent implements OnInit, OnDestroy {
           console.error('Error submitting form:', error);
           this.loading = false;
           this.hideLoader();
-          Swal.fire("Failed!", "An error occurred while processing the entry.", "error");
+
+          // More detailed error handling
+          let errorMessage = "An error occurred while processing the entry.";
+          if (error.response?.data?.message) {
+            errorMessage = error.response.data.message;
+          } else if (error.message) {
+            errorMessage = error.message;
+          }
+
+          Swal.fire("Failed!", errorMessage, "error");
         }
       });
   }
@@ -361,7 +439,7 @@ export class CreateDailyEntryComponent implements OnInit, OnDestroy {
   onReset(): void {
     this.customStylesValidated = false;
     this.submitted = false;
-    this.selectedFile = null;
+    this.resetFileSelection();
     this.fileError = '';
 
     // Reset file input

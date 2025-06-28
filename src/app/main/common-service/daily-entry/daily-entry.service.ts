@@ -18,6 +18,7 @@ interface ApiResponse<T> {
 })
 export class DailyEntryService {
   private apiUrl: string;
+  private backendBaseUrl: string = 'https://backend.faiop.com';
   private lists: string;
   private processing: string;
   private deletion: string;
@@ -43,8 +44,8 @@ export class DailyEntryService {
 
   private getMultipartHeaders() {
     return {
-      "Authorization": `Bearer ${localStorage.getItem('access_token')}`,
-      "Content-Type": "multipart/form-data"
+      "Authorization": `Bearer ${localStorage.getItem('access_token')}`
+      // Don't set Content-Type for multipart/form-data - let browser set it with boundary
     };
   }
 
@@ -70,6 +71,22 @@ export class DailyEntryService {
 
   getDailyEntryById(id: string): Observable<ApiResponse<any>> {
     return from(axios.get(`${this.processing}${id}/list_for_update/`, { headers: this.getHeaders() })).pipe(
+      map(response => response.data)
+    );
+  }
+
+  processDailyEntryWithFormData(formData: FormData, id: string = '0'): Observable<ApiResponse<any>> {
+    // Log the FormData contents for debugging - Check if FormData.entries() exists
+    console.log('FormData being sent to API:');
+    if (formData && typeof formData.forEach === 'function') {
+      formData.forEach((value, key) => {
+        console.log(key + ': ' + (value instanceof File ? `File: ${value.name}` : value));
+      });
+    }
+
+    return from(axios.post(`${this.processing}${id}/processing/`, formData, {
+      headers: this.getMultipartHeaders()
+    })).pipe(
       map(response => response.data)
     );
   }
@@ -116,6 +133,45 @@ export class DailyEntryService {
   getTransactionModes(): Observable<ApiResponse<any>> {
     return from(axios.get(this.fetchTransactionModes, { headers: this.getHeaders() })).pipe(
       map(response => response.data)
+    );
+  }
+
+  // Method to get full file URL
+  getFileUrl(relativePath: string): string {
+    if (!relativePath) return '';
+
+    // If the path is already a full URL, return as is
+    if (relativePath.startsWith('http://') || relativePath.startsWith('https://')) {
+      return relativePath;
+    }
+
+    // Always use the backend domain for file URLs, regardless of API URL
+    const cleanPath = relativePath.startsWith('/') ? relativePath : `/${relativePath}`;
+    return `${this.backendBaseUrl}${cleanPath}`;
+  }
+
+  // Method to download file with proper headers and backend URL
+  downloadFile(relativePath: string): Observable<Blob> {
+    const fullUrl = this.getFileUrl(relativePath);
+
+    return from(axios.get(fullUrl, {
+      headers: this.getHeaders(),
+      responseType: 'blob'
+    })).pipe(
+      map(response => response.data)
+    );
+  }
+
+  // Method to get file info with proper backend URL
+  getFileInfo(relativePath: string): Observable<any> {
+    const fullUrl = this.getFileUrl(relativePath);
+
+    return from(axios.head(fullUrl, { headers: this.getHeaders() })).pipe(
+      map(response => ({
+        size: response.headers['content-length'],
+        type: response.headers['content-type'],
+        lastModified: response.headers['last-modified']
+      }))
     );
   }
 }

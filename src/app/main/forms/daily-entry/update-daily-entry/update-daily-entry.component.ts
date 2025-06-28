@@ -1,3 +1,4 @@
+// Updated Component TypeScript file
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
@@ -30,6 +31,9 @@ export class UpdateDailyEntryComponent implements OnInit, OnDestroy {
   entryId!: number;
   fileError: string = '';
   selectedFile: File | null = null;
+  existingFileUrl: string = '';
+  existingFileName: string = '';
+  hasExistingFile: boolean = false;
 
   amcList: any[] = [];
   fundList: any[] = [];
@@ -184,6 +188,14 @@ export class UpdateDailyEntryComponent implements OnInit, OnDestroy {
       if (response && response.code === 1 && response.data) {
         const entryData = response.data;
 
+        // Handle existing file
+        if (entryData.dailyEntryFile) {
+          this.hasExistingFile = true;
+          this.existingFileUrl = entryData.dailyEntryFile;
+          // Extract filename from URL
+          this.existingFileName = this.extractFileNameFromUrl(entryData.dailyEntryFile);
+        }
+
         // Find the AMC ID from the AMC name
         let selectedAmcId = null;
         if (entryData.dailyEntryFundHouse) {
@@ -293,6 +305,122 @@ export class UpdateDailyEntryComponent implements OnInit, OnDestroy {
     }
   }
 
+  // Method to extract filename from URL
+  extractFileNameFromUrl(path: string): string {
+    const parts = path.split('/');
+    const fileName = parts[parts.length - 1];
+    // Remove any query parameters
+    return fileName.split('?')[0];
+  }
+
+  // Method to get file extension
+  getFileExtension(fileName: string): string {
+    return fileName.split('.').pop()?.toLowerCase() || '';
+  }
+
+  // Method to check if file can be viewed in browser
+  canViewInBrowser(fileName: string): boolean {
+    const extension = this.getFileExtension(fileName);
+    return ['pdf', 'jpg', 'jpeg', 'png', 'gif', 'bmp', 'svg'].includes(extension);
+  }
+
+  // Method to handle file click
+  onExistingFileClick(): void {
+    if (!this.existingFileUrl) return;
+
+    // Always use the service method to get the proper backend URL
+    const fullFileUrl = this.dailyEntryService.getFileUrl(this.existingFileUrl);
+    console.log('Opening file URL:', fullFileUrl); // Debug log
+
+    if (this.canViewInBrowser(this.existingFileName)) {
+      // Open in new tab for viewable files
+      window.open(fullFileUrl, '_blank');
+    } else {
+      // Use service method for downloading with proper authentication
+      this.downloadFileWithAuth(this.existingFileUrl, this.existingFileName);
+    }
+  }
+
+  // Method to download file
+  downloadFileWithAuth(relativePath: string, fileName: string): void {
+    this.showLoader('Downloading file...', true);
+
+    this.dailyEntryService.downloadFile(relativePath)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (blob: Blob) => {
+          this.hideLoader();
+
+          // Create blob URL and trigger download
+          const url = window.URL.createObjectURL(blob);
+          const link = document.createElement('a');
+          link.href = url;
+          link.download = fileName;
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          window.URL.revokeObjectURL(url);
+        },
+        error: (error) => {
+          this.hideLoader();
+          console.error('Error downloading file:', error);
+          Swal.fire('Error', 'Failed to download file. Please try again.', 'error');
+        }
+      });
+  }
+
+  // Fallback download method for direct URL (without auth)
+  downloadFile(url: string, fileName: string): void {
+    const fullUrl = this.dailyEntryService.getFileUrl(url);
+
+    const link = document.createElement('a');
+    link.href = fullUrl;
+    link.download = fileName;
+    link.target = '_blank';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  }
+
+  // Method to get file icon based on extension
+  getFileIcon(fileName: string): string {
+    const extension = this.getFileExtension(fileName);
+    switch (extension) {
+      case 'pdf':
+        return '📄';
+      case 'doc':
+      case 'docx':
+        return '📝';
+      case 'jpg':
+      case 'jpeg':
+      case 'png':
+      case 'gif':
+      case 'bmp':
+      case 'svg':
+        return '🖼️';
+      default:
+        return '📎';
+    }
+  }
+
+  // Method to remove existing file
+  removeExistingFile(): void {
+    Swal.fire({
+      title: 'Remove File?',
+      text: 'Are you sure you want to remove the existing file?',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Yes, remove it',
+      cancelButtonText: 'Cancel'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        this.hasExistingFile = false;
+        this.existingFileUrl = '';
+        this.existingFileName = '';
+      }
+    });
+  }
+
   get f() { return this.dailyEntryForm.controls; }
 
   private handleErrorResponse(message: string): void {
@@ -382,6 +510,11 @@ export class UpdateDailyEntryComponent implements OnInit, OnDestroy {
     // Add file if selected
     if (this.selectedFile) {
       (formData as any).dailyEntryFile = this.selectedFile;
+    }
+
+    // Add flag to remove existing file if user chose to remove it
+    if (!this.hasExistingFile && this.existingFileUrl) {
+      (formData as any).removeExistingFile = true;
     }
 
     this.dailyEntryService.processDailyEntry(formData, this.entryId.toString())

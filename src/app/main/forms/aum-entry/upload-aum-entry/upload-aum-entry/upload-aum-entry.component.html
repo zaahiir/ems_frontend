@@ -1,0 +1,208 @@
+<c-row ngPreserveWhitespaces>
+  <c-col xs="12">
+    <c-card class="mb-4">
+      <c-card-header>
+        <strong>Upload AUM Entry from Excel</strong>
+      </c-card-header>
+      <c-card-body>
+        <form #uploadFormRef="ngForm"
+          (ngSubmit)="onSubmit()"
+          [formGroup]="uploadForm"
+          [validated]="customStylesValidated"
+          cForm
+          class="row g-3 needs-validation"
+        >
+          <c-col [cFormFloating]="true" md="6">
+            <select cSelect id="arnSelect" formControlName="aumArnNumber" required>
+              <option value="" disabled selected>Select an ARN</option>
+              <option [value]="item.id" *ngFor="let item of arn">{{ item.arnNumber }}</option>
+            </select>
+            <label cLabel for="arnSelect" class="ms-2">ARN</label>
+            <c-form-feedback [valid]="false" *ngIf="f['aumArnNumber'].errors && (f['aumArnNumber'].touched || submitted)">
+              Please select an ARN.
+            </c-form-feedback>
+          </c-col>
+
+          <c-col [cFormFloating]="false" md="6">
+            <input
+              type="file"
+              cFormControl
+              id="excelFile"
+              formControlName="excelFile"
+              (change)="onFileSelected($event)"
+              accept=".xlsx,.xls"
+              required
+            />
+            <label cLabel for="excelFile" class="form-label">Upload Excel File</label>
+            <c-form-feedback [valid]="false" *ngIf="f['excelFile'].errors && (f['excelFile'].touched || submitted)">
+              Please select an Excel file.
+            </c-form-feedback>
+            <div class="form-text">
+              Upload Excel file with AUM data. Expected format: First row should contain date, and columns should include AMC Name and AUM.
+            </div>
+          </c-col>
+
+          <!-- Display extracted month -->
+          <c-col xs="12" *ngIf="extractedMonth">
+            <div class="alert alert-info">
+              <strong>Extracted Month:</strong> {{ extractedMonth }}
+            </div>
+          </c-col>
+
+          <!-- Preview Section -->
+          <c-col xs="12" *ngIf="showPreview">
+            <c-card class="mt-3">
+              <c-card-header>
+                <strong>Preview - AUM Data ({{ parsedData.length }} records found)</strong>
+              </c-card-header>
+              <c-card-body>
+                <div class="table-responsive">
+                  <table [hover]="true" [striped]="true" [bordered]="true" cTable>
+                    <thead>
+                      <tr>
+                        <th scope="col">#</th>
+                        <th scope="col">AMC Name (from Excel)</th>
+                        <th scope="col">AUM Amount</th>
+                        <th scope="col">Matched AMC</th>
+                        <th scope="col">Match Type</th>
+                        <th scope="col">Status</th>
+                        <th scope="col">Action</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr *ngFor="let item of parsedData; let i = index"
+                          [class]="item.matched ? 'table-success' : 'table-warning'">
+                        <td>{{ i + 1 }}</td>
+                        <td>
+                          <strong>{{ item.originalAmcName }}</strong>
+                        </td>
+                        <td>{{ item.aumAmount | number:'1.2-2' }}</td>
+                        <td>
+                          <!-- Show matched AMC as text when matched -->
+                          <div *ngIf="item.matched" class="matched-amc-display">
+                            <strong class="text-success">{{ item.matchedAmcName }}</strong>
+                            <br>
+                            <small class="text-muted">
+                              <i class="fas fa-check-circle text-success me-1"></i>
+                              Auto-matched
+                            </small>
+                          </div>
+
+                          <!-- Show dropdown only for unmatched items -->
+                          <div *ngIf="!item.matched">
+                            <select
+                              cSelect
+                              [value]="item.amcId || ''"
+                              (change)="updateAmcSelection(i, $event)"
+                              class="form-select form-select-sm">
+                              <option value="">Select AMC to match</option>
+                              <option [value]="amc.id" *ngFor="let amc of amc">{{ amc.amcName }}</option>
+                            </select>
+                            <small class="text-muted mt-1 d-block">
+                              <i class="fas fa-exclamation-triangle text-warning me-1"></i>
+                              Manual matching required
+                            </small>
+                          </div>
+                        </td>
+                        <td>
+                          <span *ngIf="item.matchType === 'exact'" class="badge bg-success">
+                            <i class="fas fa-equals me-1"></i>Exact
+                          </span>
+                          <span *ngIf="item.matchType === 'fuzzy'" class="badge bg-info">
+                            <i class="fas fa-search me-1"></i>Fuzzy
+                          </span>
+                          <span *ngIf="item.matchType === 'manual'" class="badge bg-primary">
+                            <i class="fas fa-hand-pointer me-1"></i>Manual
+                          </span>
+                          <span *ngIf="!item.matchType" class="badge bg-secondary">
+                            <i class="fas fa-question me-1"></i>None
+                          </span>
+                        </td>
+                        <td>
+                          <span *ngIf="item.matched" class="badge bg-success">
+                            <i class="fas fa-check me-1"></i>Matched
+                          </span>
+                          <span *ngIf="!item.matched" class="badge bg-warning">
+                            <i class="fas fa-exclamation me-1"></i>Not Matched
+                          </span>
+                        </td>
+                        <td>
+                          <button
+                            type="button"
+                            cButton
+                            size="sm"
+                            color="danger"
+                            (click)="removeItem(i)"
+                            title="Remove this item">
+                            <i class="fas fa-times"></i>
+                          </button>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+
+                <div class="mt-3">
+                  <div class="row">
+                    <div class="col-md-3">
+                      <div class="alert alert-success mb-2">
+                        <i class="fas fa-check-circle me-2"></i>
+                        <strong>Matched:</strong> {{ getMatchedCount() }}
+                      </div>
+                    </div>
+                    <div class="col-md-3">
+                      <div class="alert alert-warning mb-2">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        <strong>Not Matched:</strong> {{ getUnmatchedCount() }}
+                      </div>
+                    </div>
+                    <div class="col-md-3">
+                      <div class="alert alert-info mb-2">
+                        <i class="fas fa-list me-2"></i>
+                        <strong>Total:</strong> {{ parsedData.length }}
+                      </div>
+                    </div>
+                    <div class="col-md-3">
+                      <div class="alert alert-primary mb-2">
+                        <i class="fas fa-upload me-2"></i>
+                        <strong>Ready to Upload:</strong> {{ getMatchedCount() }}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Upload warning if unmatched items exist -->
+                <div *ngIf="getUnmatchedCount() > 0" class="alert alert-warning">
+                  <i class="fas fa-info-circle me-2"></i>
+                  <strong>Note:</strong> Only matched AMCs will be uploaded. Please match the remaining {{ getUnmatchedCount() }} AMC(s) or remove them before uploading.
+                </div>
+              </c-card-body>
+            </c-card>
+          </c-col>
+
+          <c-col xs="12">
+            <button
+              cButton
+              class="me-2"
+              color="primary"
+              type="submit"
+              [disabled]="loading || !showPreview || getMatchedCount() === 0">
+              <span *ngIf="loading" class="spinner-border spinner-border-sm me-2" role="status"></span>
+              <i *ngIf="!loading" class="fas fa-upload me-2"></i>
+              {{ loading ? 'Uploading...' : 'Upload AUM Data (' + getMatchedCount() + ' entries)' }}
+            </button>
+            <button
+              (click)="onReset()"
+              cButton
+              color="secondary"
+              type="button"
+              [disabled]="loading">
+              <i class="fas fa-refresh me-2"></i>
+              Reset
+            </button>
+          </c-col>
+        </form>
+      </c-card-body>
+    </c-card>
+  </c-col>
+</c-row>

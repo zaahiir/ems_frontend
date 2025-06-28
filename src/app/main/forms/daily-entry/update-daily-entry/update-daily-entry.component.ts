@@ -1,4 +1,4 @@
-// Updated Component TypeScript file
+// Fixed Component TypeScript file
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
@@ -33,6 +33,7 @@ export class UpdateDailyEntryComponent implements OnInit, OnDestroy {
   selectedFile: File | null = null;
   existingFileUrl: string = '';
   existingFileName: string = '';
+  shouldRemoveExistingFile: boolean = false; // Fixed: Changed from string to boolean
   hasExistingFile: boolean = false;
 
   amcList: any[] = [];
@@ -55,6 +56,7 @@ export class UpdateDailyEntryComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.entryId = this.route.snapshot.params['id'];
+    this.shouldRemoveExistingFile = false; // Reset on component init
     this.loadInitialData();
   }
 
@@ -188,12 +190,19 @@ export class UpdateDailyEntryComponent implements OnInit, OnDestroy {
       if (response && response.code === 1 && response.data) {
         const entryData = response.data;
 
+        this.shouldRemoveExistingFile = false;
+
         // Handle existing file
         if (entryData.dailyEntryFile) {
           this.hasExistingFile = true;
           this.existingFileUrl = entryData.dailyEntryFile;
           // Extract filename from URL
           this.existingFileName = this.extractFileNameFromUrl(entryData.dailyEntryFile);
+        } else {
+          // No file exists
+          this.hasExistingFile = false;
+          this.existingFileUrl = '';
+          this.existingFileName = '';
         }
 
         // Find the AMC ID from the AMC name
@@ -274,6 +283,19 @@ export class UpdateDailyEntryComponent implements OnInit, OnDestroy {
       this.dailyEntryForm.patchValue({ fundName: '' });
     } finally {
       this.hideLoader();
+    }
+  }
+
+  // Add method to reset file state if needed
+  resetFileState(): void {
+    this.selectedFile = null;
+    this.fileError = '';
+    this.shouldRemoveExistingFile = false;
+
+    // Clear file input
+    const fileInput = document.getElementById('dailyEntryFile') as HTMLInputElement;
+    if (fileInput) {
+      fileInput.value = '';
     }
   }
 
@@ -407,16 +429,28 @@ export class UpdateDailyEntryComponent implements OnInit, OnDestroy {
   removeExistingFile(): void {
     Swal.fire({
       title: 'Remove File?',
-      text: 'Are you sure you want to remove the existing file?',
+      text: 'Are you sure you want to remove the existing file? This action cannot be undone.',
       icon: 'warning',
       showCancelButton: true,
       confirmButtonText: 'Yes, remove it',
-      cancelButtonText: 'Cancel'
+      cancelButtonText: 'Cancel',
+      confirmButtonColor: '#d33'
     }).then((result) => {
       if (result.isConfirmed) {
+        // Set flags for removal
         this.hasExistingFile = false;
         this.existingFileUrl = '';
         this.existingFileName = '';
+        this.shouldRemoveExistingFile = true;
+
+        // Show confirmation
+        Swal.fire({
+          title: 'File Marked for Removal',
+          text: 'The file will be permanently deleted when you save the form.',
+          icon: 'info',
+          timer: 2000,
+          showConfirmButton: false
+        });
       }
     });
   }
@@ -487,43 +521,52 @@ export class UpdateDailyEntryComponent implements OnInit, OnDestroy {
     this.loading = true;
     this.showLoader('Updating...');
 
-    // Prepare form data
-    const formData = {
-      id: this.entryId,
-      applicationDate: this.dailyEntryForm.get('applicationDate')?.value,
-      dailyEntryClientPanNumber: this.dailyEntryForm.get('clientPanNumber')?.value,
-      dailyEntryClientName: this.dailyEntryForm.get('clientName')?.value,
-      clientFolioNumber: this.dailyEntryForm.get('clientFolioNumber')?.value,
-      clientPhoneCountryCode: this.dailyEntryForm.get('clientPhoneCountryCode')?.value,
-      clientMobileNumber: this.dailyEntryForm.get('clientMobileNumber')?.value,
-      dailyEntryFundHouse: this.dailyEntryForm.get('fundHouse')?.value,
-      dailyEntryFundName: this.dailyEntryForm.get('fundName')?.value,
-      amount: this.dailyEntryForm.get('amount')?.value,
-      clientChequeNumber: this.dailyEntryForm.get('clientChequeNumber')?.value,
-      dailyEntryIssueType: this.dailyEntryForm.get('transactionType')?.value,
-      dailyEntryTranscationMode: this.dailyEntryForm.get('transactionMode')?.value,
-      sipDate: this.dailyEntryForm.get('sipDate')?.value,
-      staffName: this.dailyEntryForm.get('staffName')?.value,
-      transactionAddDetail: this.dailyEntryForm.get('transactionAddDetail')?.value
-    };
+    // Create FormData object for multipart upload
+    const formData = new FormData();
+
+    // Add all form fields
+    formData.append('applicationDate', this.dailyEntryForm.get('applicationDate')?.value || '');
+    formData.append('dailyEntryClientPanNumber', this.dailyEntryForm.get('clientPanNumber')?.value || '');
+    formData.append('dailyEntryClientName', this.dailyEntryForm.get('clientName')?.value || '');
+    formData.append('clientFolioNumber', this.dailyEntryForm.get('clientFolioNumber')?.value || '');
+    formData.append('clientPhoneCountryCode', this.dailyEntryForm.get('clientPhoneCountryCode')?.value || '');
+    formData.append('clientMobileNumber', this.dailyEntryForm.get('clientMobileNumber')?.value || '');
+    formData.append('dailyEntryFundHouse', this.dailyEntryForm.get('fundHouse')?.value || '');
+    formData.append('dailyEntryFundName', this.dailyEntryForm.get('fundName')?.value || '');
+    formData.append('amount', this.dailyEntryForm.get('amount')?.value || '');
+    formData.append('clientChequeNumber', this.dailyEntryForm.get('clientChequeNumber')?.value || '');
+    formData.append('dailyEntryIssueType', this.dailyEntryForm.get('transactionType')?.value || '');
+    formData.append('dailyEntryTranscationMode', this.dailyEntryForm.get('transactionMode')?.value || '');
+    formData.append('sipDate', this.dailyEntryForm.get('sipDate')?.value || '');
+    formData.append('staffName', this.dailyEntryForm.get('staffName')?.value || '');
+    formData.append('transactionAddDetail', this.dailyEntryForm.get('transactionAddDetail')?.value || '');
 
     // Add file if selected
     if (this.selectedFile) {
-      (formData as any).dailyEntryFile = this.selectedFile;
+      formData.append('dailyEntryFile', this.selectedFile);
     }
 
     // Add flag to remove existing file if user chose to remove it
-    if (!this.hasExistingFile && this.existingFileUrl) {
-      (formData as any).removeExistingFile = true;
+    if (this.shouldRemoveExistingFile) {
+      formData.append('removeExistingFile', 'true');
     }
 
-    this.dailyEntryService.processDailyEntry(formData, this.entryId.toString())
+    // Debug: Log FormData contents
+    console.log('FormData being sent:');
+    formData.forEach((value, key) => {
+      console.log(`${key}: ${value instanceof File ? `File: ${value.name}` : value}`);
+    });
+
+    this.dailyEntryService.processDailyEntryWithFormData(formData, this.entryId.toString())
     .pipe(takeUntil(this.destroy$))
     .subscribe(
       response => {
         this.loading = false;
         this.hideLoader();
         if (response.code === 1) {
+          // Reset file removal flag on success
+          this.shouldRemoveExistingFile = false;
+
           Swal.fire({
             title: "Updated!",
             text: "Daily entry updated successfully",

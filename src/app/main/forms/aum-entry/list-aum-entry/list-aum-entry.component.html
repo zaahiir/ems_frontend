@@ -5,6 +5,9 @@
           <div class="col-auto">
             <a cButton [routerLink]="['/forms/aum/add']" color="primary" role="button">Create New AUM Entry</a>
           </div>
+          <div class="col-auto">
+            <a cButton [routerLink]="['/forms/aum/upload']" color="primary" role="button">Upload New AUM Entry</a>
+          </div>
         </form>
       </c-card-body>
     </c-card>
@@ -14,10 +17,10 @@
       <c-card class="mb-4">
         <c-card-body>
           <c-col md="3" class="mb-4 flex justify-content-md-end">
-          <input cFormControl id="validationCustom09" 
+          <input cFormControl id="validationCustom09"
           (input)="search($event)"
           [(ngModel)]="searchTerm"
-          type="search" 
+          type="search"
           placeholder="search" />
           </c-col>
           <table [hover]="true" [striped]="true" [bordered]="true" cTable>
@@ -28,7 +31,7 @@
               <th scope="col">AMC Name</th>
               <th scope="col">AUM</th>
               <th scope="col">Month</th>
-              <th scope="col">Action</th>  
+              <th scope="col">Action</th>
             </tr>
             </thead>
             <tbody>

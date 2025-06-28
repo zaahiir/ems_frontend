@@ -26,7 +26,7 @@ export class AumEntryService {
   private arn: string;
   private amc: string;
 
-  constructor() {  
+  constructor() {
     this.apiUrl = new BaseAPIUrl().getUrl(baseURLType)
     this.lists = this.apiUrl + "aumEntry/listing/";
     this.processing = this.apiUrl + "aumEntry/";
@@ -49,7 +49,7 @@ export class AumEntryService {
       search: search
     });
     const url = `${this.lists}?${params.toString()}`;
-    
+
     return from(axios.get(url, { headers: this.getHeaders() })).pipe(
       map(response => response.data)
     );
@@ -77,7 +77,7 @@ export class AumEntryService {
   // Delete particular Aum
   deleteAum(id: string): Promise<any> {
     const url = this.deletion.replace('0', id);
-    return axios.get(url, { 
+    return axios.get(url, {
       headers: this.getHeaders()
     });
   }

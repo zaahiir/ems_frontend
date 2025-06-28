@@ -1,8 +1,8 @@
 import { Injectable } from '@angular/core';
 import { BaseAPIUrl, baseURLType } from '../commom-api-url';
 import axios from 'axios';
-import { Observable, from } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { Observable, from, throwError } from 'rxjs'; 
+import { map, catchError } from 'rxjs/operators';
 
 interface ApiResponse<T> {
   code: number;
@@ -76,41 +76,61 @@ export class DailyEntryService {
   }
 
   processDailyEntryWithFormData(formData: FormData, id: string = '0'): Observable<ApiResponse<any>> {
-    // Log the FormData contents for debugging - Check if FormData.entries() exists
-    console.log('FormData being sent to API:');
-    if (formData && typeof formData.forEach === 'function') {
-      formData.forEach((value, key) => {
-        console.log(key + ': ' + (value instanceof File ? `File: ${value.name}` : value));
-      });
-    }
-
-    return from(axios.post(`${this.processing}${id}/processing/`, formData, {
-      headers: this.getMultipartHeaders()
-    })).pipe(
-      map(response => response.data)
-    );
-  }
-
-  processDailyEntry(data: any, id: string = '0'): Observable<ApiResponse<any>> {
-    const formData = new FormData();
-
-    // Add all form fields to FormData
-    Object.keys(data).forEach(key => {
-      if (data[key] !== null && data[key] !== undefined) {
-        if (key === 'dailyEntryFile' && data[key] instanceof File) {
-          formData.append(key, data[key]);
-        } else {
-          formData.append(key, data[key]);
-        }
+  // Enhanced logging for debugging
+  console.log('FormData being sent to API:');
+  if (formData && typeof formData.forEach === 'function') {
+    formData.forEach((value, key) => {
+      if (value instanceof File) {
+        console.log(`${key}: File - ${value.name} (${(value.size / 1024 / 1024).toFixed(2)} MB)`);
+      } else {
+        console.log(`${key}: ${value}`);
       }
     });
-
-    return from(axios.post(`${this.processing}${id}/processing/`, formData, {
-      headers: this.getMultipartHeaders()
-    })).pipe(
-      map(response => response.data)
-    );
   }
+
+  // Log the endpoint being called
+  const endpoint = `${this.processing}${id}/processing/`;
+  console.log('API Endpoint:', endpoint);
+
+  return from(axios.post(endpoint, formData, {
+    headers: this.getMultipartHeaders(),
+    timeout: 30000, // 30 second timeout for file uploads
+    maxContentLength: Infinity,
+    maxBodyLength: Infinity
+  })).pipe(
+    map(response => {
+      console.log('API Response:', response.data);
+      return response.data;
+    }),
+    catchError(error => {
+      console.error('API Error:', error);
+      if (error.response) {
+        console.error('Error Response:', error.response.data);
+        console.error('Error Status:', error.response.status);
+      }
+      throw error;
+    })
+  );
+}
+
+// Also update the regular processDailyEntry method to use FormData consistently
+processDailyEntry(data: any, id: string = '0'): Observable<ApiResponse<any>> {
+  const formData = new FormData();
+
+  // Add all form fields to FormData
+  Object.keys(data).forEach(key => {
+    if (data[key] !== null && data[key] !== undefined) {
+      if (key === 'dailyEntryFile' && data[key] instanceof File) {
+        formData.append(key, data[key]);
+      } else {
+        // Convert all values to strings for FormData
+        formData.append(key, String(data[key]));
+      }
+    }
+  });
+
+  return this.processDailyEntryWithFormData(formData, id);
+}
 
   deleteDailyEntry(id: string): Observable<ApiResponse<any>> {
     return from(axios.get(`${this.deletion}${id}/deletion/`, { headers: this.getHeaders() })).pipe(

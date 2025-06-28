@@ -8,7 +8,7 @@ import { AumEntryService } from '../../../common-service/aum-entry/aum-entry.ser
 import Swal from 'sweetalert2';
 import { Router, ActivatedRoute } from '@angular/router';
 import { takeUntil } from 'rxjs/operators';
-import { Subject } from 'rxjs';
+import { Subject, forkJoin  } from 'rxjs';
 
 @Component({
   selector: 'app-update-daily-entry',

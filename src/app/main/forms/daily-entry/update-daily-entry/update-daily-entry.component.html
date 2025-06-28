@@ -111,14 +111,8 @@
             <label cLabel for="sipDate" class="ms-2">SIP Date</label>
           </c-col>
 
-          <c-col [cFormFloating]="true" md="6">
-            <input cFormControl id="staffName" formControlName="staffName" required type="text" placeholder="Staff Name" readonly />
-            <label cLabel for="staffName" class="ms-2">Staff Name</label>
-          </c-col>
-
           <c-col md="6">
             <div class="mb-0">
-              <label cLabel for="dailyEntryFile" class="form-label">Upload Document (PDF, DOC, DOCX only)</label>
               <input
                 cFormControl
                 id="dailyEntryFile"
@@ -127,8 +121,14 @@
                 accept=".pdf,.doc,.docx"
                 (change)="onFileChange($event)"
               />
+              <label cLabel for="dailyEntryFile" class="form-label"> <small>Upload Document: Accepted formats: PDF, DOC, DOCX</small></label>
               <c-form-feedback [valid]="false" *ngIf="fileError">{{ fileError }}</c-form-feedback>
             </div>
+          </c-col>
+
+          <c-col [cFormFloating]="true" md="6">
+            <input cFormControl id="staffName" formControlName="staffName" required type="text" placeholder="Staff Name" readonly />
+            <label cLabel for="staffName" class="ms-2">Staff Name</label>
           </c-col>
 
           <c-col [cFormFloating]="true" md="12">

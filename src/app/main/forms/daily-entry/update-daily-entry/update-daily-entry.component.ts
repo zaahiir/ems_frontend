@@ -82,32 +82,51 @@ export class UpdateDailyEntryComponent implements OnInit, OnDestroy {
 
   async loadInitialData(): Promise<void> {
     this.showLoader('Loading data...');
-    try {
-      const [amcsResponse, issueTypesResponse, transactionModesResponse] = await Promise.all([
-        this.amcService.getAmc(),
-        this.issueService.getIssueType(),
-        this.dailyEntryService.getTransactionModes()
-      ]);
 
-      this.amcList = (amcsResponse as any).data || [];
-      this.issueTypes = (issueTypesResponse as any).data || [];
+    // Use forkJoin to handle multiple Observables properly
+    forkJoin({
+      amcs: this.amcService.getAmc(),
+      issueTypes: this.issueService.getIssueType(),
+      transactionModes: this.dailyEntryService.getTransactionModes()
+    })
+    .pipe(takeUntil(this.destroy$))
+    .subscribe({
+      next: async (responses) => {
+        console.log('API Responses:', responses);
 
-      // The transactionModes API returns the array directly
-      this.transactionModes = Array.isArray(transactionModesResponse) ? transactionModesResponse : [];
+        // Access the data property from each response
+        this.amcList = responses.amcs.data || [];
+        this.issueTypes = responses.issueTypes.data || [];
 
-      console.log('Raw transactionModesResponse:', transactionModesResponse);
-      console.log('Final transactionModes array:', this.transactionModes);
+        // Handle transactionModes which might have different response structure
+        if (Array.isArray(responses.transactionModes)) {
+          // If transactionModes is already an array
+          this.transactionModes = responses.transactionModes;
+        } else if (responses.transactionModes && responses.transactionModes.data) {
+          // If transactionModes has a data property
+          this.transactionModes = responses.transactionModes.data;
+        } else {
+          this.transactionModes = [];
+        }
 
-      console.log('Transaction Modes:', this.transactionModes);
+        console.log('Transaction Modes:', this.transactionModes);
 
-      await this.loadExistingEntry();
-      this.setupFormListeners();
-    } catch (error) {
-      console.error('Error loading initial data:', error);
-      Swal.fire('Error', 'Failed to load initial data. Please try again.', 'error');
-    } finally {
-      this.hideLoader();
-    }
+        try {
+          await this.loadExistingEntry();
+          this.setupFormListeners();
+        } catch (error) {
+          console.error('Error loading existing entry:', error);
+          Swal.fire('Error', 'Failed to load entry data. Please try again.', 'error');
+        }
+      },
+      error: (error) => {
+        console.error('Error loading initial data:', error);
+        Swal.fire('Error', 'Failed to load initial data. Please try again.', 'error');
+      },
+      complete: () => {
+        this.hideLoader();
+      }
+    });
   }
 
   setupFormListeners(): void {

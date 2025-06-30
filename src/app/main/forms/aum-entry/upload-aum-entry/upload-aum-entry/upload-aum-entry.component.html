@@ -64,14 +64,11 @@
                         <th scope="col">AMC Name (from Excel)</th>
                         <th scope="col">AUM Amount</th>
                         <th scope="col">Matched AMC</th>
-                        <th scope="col">Match Type</th>
-                        <th scope="col">Status</th>
                         <th scope="col">Action</th>
                       </tr>
                     </thead>
                     <tbody>
-                      <tr *ngFor="let item of parsedData; let i = index"
-                          [class]="item.matched ? 'table-success' : 'table-warning'">
+                      <tr *ngFor="let item of parsedData; let i = index">
                         <td>{{ i + 1 }}</td>
                         <td>
                           <strong>{{ item.originalAmcName }}</strong>
@@ -105,28 +102,6 @@
                           </div>
                         </td>
                         <td>
-                          <span *ngIf="item.matchType === 'exact'" class="badge bg-success">
-                            <i class="fas fa-equals me-1"></i>Exact
-                          </span>
-                          <span *ngIf="item.matchType === 'fuzzy'" class="badge bg-info">
-                            <i class="fas fa-search me-1"></i>Fuzzy
-                          </span>
-                          <span *ngIf="item.matchType === 'manual'" class="badge bg-primary">
-                            <i class="fas fa-hand-pointer me-1"></i>Manual
-                          </span>
-                          <span *ngIf="!item.matchType" class="badge bg-secondary">
-                            <i class="fas fa-question me-1"></i>None
-                          </span>
-                        </td>
-                        <td>
-                          <span *ngIf="item.matched" class="badge bg-success">
-                            <i class="fas fa-check me-1"></i>Matched
-                          </span>
-                          <span *ngIf="!item.matched" class="badge bg-warning">
-                            <i class="fas fa-exclamation me-1"></i>Not Matched
-                          </span>
-                        </td>
-                        <td>
                           <button
                             type="button"
                             cButton
@@ -134,7 +109,8 @@
                             color="danger"
                             (click)="removeItem(i)"
                             title="Remove this item">
-                            <i class="fas fa-times"></i>
+                            <i class="fas fa-times me-1"></i>
+                            Remove
                           </button>
                         </td>
                       </tr>

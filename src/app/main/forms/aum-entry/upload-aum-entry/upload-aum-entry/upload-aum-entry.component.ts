@@ -36,10 +36,13 @@ import { lastValueFrom } from 'rxjs';
 import * as XLSX from 'xlsx';
 
 interface ParsedAumData {
+  originalAmcName: string;
   amcName: string;
   aumAmount: number;
   amcId?: string;
   matched: boolean;
+  matchedAmcName?: string;
+  matchType?: 'exact' | 'fuzzy' | 'manual';
   rowIndex: number;
 }
 
@@ -229,16 +232,19 @@ export class UploadAumEntryComponent implements OnInit {
     for (let i = headerRowIndex + 1; i < data.length; i++) {
       const row = data[i];
       if (row && Array.isArray(row) && row[amcNameColIndex] && row[aumColIndex]) {
-        const amcName = row[amcNameColIndex].toString().trim();
+        const originalAmcName = row[amcNameColIndex].toString().trim();
         const aumAmount = this.parseAumAmount(row[aumColIndex]);
 
-        if (amcName && aumAmount > 0) {
-          const matchedAmc = this.findMatchingAmc(amcName);
+        if (originalAmcName && aumAmount > 0) {
+          const matchResult = this.findMatchingAmc(originalAmcName);
           this.parsedData.push({
-            amcName: amcName,
+            originalAmcName: originalAmcName,
+            amcName: originalAmcName,
             aumAmount: aumAmount,
-            amcId: matchedAmc ? matchedAmc.id.toString() : undefined, // Convert to string
-            matched: !!matchedAmc,
+            amcId: matchResult.amc ? matchResult.amc.id.toString() : undefined,
+            matched: !!matchResult.amc,
+            matchedAmcName: matchResult.amc ? matchResult.amc.amcName : undefined,
+            matchType: matchResult.matchType,
             rowIndex: i + 1
           });
         }
@@ -262,37 +268,94 @@ export class UploadAumEntryComponent implements OnInit {
     return isNaN(numericValue) ? 0 : numericValue;
   }
 
-  findMatchingAmc(amcName: string): amcMasterCommonInterface | undefined {
+  findMatchingAmc(amcName: string): { amc?: amcMasterCommonInterface, matchType?: 'exact' | 'fuzzy' } {
     const normalizedInput = amcName.toLowerCase().trim();
 
-    // Try exact match first
+    // Try exact match first (complete name)
     let match = this.amc.find(amc =>
       amc.amcName.toLowerCase().trim() === normalizedInput
     );
-
-    // If no exact match, try partial match
-    if (!match) {
-      match = this.amc.find(amc =>
-        amc.amcName.toLowerCase().includes(normalizedInput) ||
-        normalizedInput.includes(amc.amcName.toLowerCase())
-      );
+    if (match) {
+      return { amc: match, matchType: 'exact' };
     }
 
-    // Try matching without "Mutual Fund" suffix
-    if (!match) {
-      const cleanedInput = normalizedInput.replace(/\s*(mutual\s*fund|mf)\s*$/i, '').trim();
-      match = this.amc.find(amc =>
-        amc.amcName.toLowerCase().replace(/\s*(mutual\s*fund|mf)\s*$/i, '').trim() === cleanedInput
-      );
+    // Try matching without "Mutual Fund" suffix (both sides)
+    const cleanedInput = normalizedInput.replace(/\s*(mutual\s*fund|mf)\s*$/i, '').trim();
+    match = this.amc.find(amc => {
+      const cleanedAmcName = amc.amcName.toLowerCase().replace(/\s*(mutual\s*fund|mf)\s*$/i, '').trim();
+      return cleanedAmcName === cleanedInput;
+    });
+    if (match) {
+      return { amc: match, matchType: 'fuzzy' };
     }
 
-    return match;
+    // Try matching with first words (for cases like "Kotak" matching "Kotak Mahindra")
+    const inputWords = cleanedInput.split(/\s+/);
+    const firstInputWord = inputWords[0];
+
+    if (firstInputWord && firstInputWord.length >= 3) { // Minimum 3 characters to avoid false matches
+      match = this.amc.find(amc => {
+        const cleanedAmcName = amc.amcName.toLowerCase().replace(/\s*(mutual\s*fund|mf)\s*$/i, '').trim();
+        const amcWords = cleanedAmcName.split(/\s+/);
+        const firstAmcWord = amcWords[0];
+
+        // Check if first word of input matches first word of AMC name
+        return firstAmcWord === firstInputWord ||
+               // Also check if input is contained in AMC name or vice versa
+               cleanedAmcName.includes(cleanedInput) ||
+               cleanedInput.includes(cleanedAmcName);
+      });
+      if (match) {
+        return { amc: match, matchType: 'fuzzy' };
+      }
+    }
+
+    // Try partial match (if one contains the other)
+    match = this.amc.find(amc => {
+      const cleanedAmcName = amc.amcName.toLowerCase().replace(/\s*(mutual\s*fund|mf)\s*$/i, '').trim();
+      return cleanedAmcName.includes(cleanedInput) || cleanedInput.includes(cleanedAmcName);
+    });
+    if (match) {
+      return { amc: match, matchType: 'fuzzy' };
+    }
+
+    return {};
   }
 
-  updateAmcSelection(index: number, amcId: string): void {
+  updateAmcSelection(index: number, event: any): void {
+    const amcId = event.target.value;
     if (this.parsedData[index]) {
       this.parsedData[index].amcId = amcId;
       this.parsedData[index].matched = !!amcId;
+
+      if (amcId) {
+        const selectedAmc = this.amc.find(amc => amc.id.toString() === amcId);
+        this.parsedData[index].matchedAmcName = selectedAmc ? selectedAmc.amcName : undefined;
+        this.parsedData[index].matchType = 'manual';
+      } else {
+        this.parsedData[index].matchedAmcName = undefined;
+        this.parsedData[index].matchType = undefined;
+      }
+    }
+  }
+
+  getMatchedCount(): number {
+    return this.parsedData.filter(item => item.matched).length;
+  }
+
+  getUnmatchedCount(): number {
+    return this.parsedData.filter(item => !item.matched).length;
+  }
+
+  async checkForDuplicates(arnNumber: string, amcId: string, month: string): Promise<boolean> {
+    try {
+      const response = await lastValueFrom(
+        this.aumEntryService.checkDuplicate(arnNumber, amcId, month)
+      );
+      return response.exists;
+    } catch (error) {
+      console.error('Error checking duplicates:', error);
+      return false;
     }
   }
 
@@ -337,10 +400,21 @@ export class UploadAumEntryComponent implements OnInit {
       const matchedItems = this.parsedData.filter(item => item.matched);
       let successCount = 0;
       let failureCount = 0;
+      let duplicateCount = 0;
+      const failedItems: string[] = [];
 
+      // Check for duplicates first
+      const arnNumber = this.f['aumArnNumber'].value;
       for (const item of matchedItems) {
+        const isDuplicate = await this.checkForDuplicates(arnNumber, item.amcId!, this.extractedMonth);
+        if (isDuplicate) {
+          duplicateCount++;
+          failedItems.push(`${item.matchedAmcName} - Duplicate entry`);
+          continue;
+        }
+
         const data = {
-          aumArnNumber: this.f['aumArnNumber'].value,
+          aumArnNumber: arnNumber,
           aumAmcName: item.amcId,
           aumAmount: item.aumAmount,
           aumMonth: this.extractedMonth,
@@ -349,25 +423,43 @@ export class UploadAumEntryComponent implements OnInit {
 
         try {
           const response = await lastValueFrom(this.aumEntryService.processAum(data, "0"));
+          console.log('API Response:', response); // Debug log
+
           if (response.code === 1) {
             successCount++;
           } else {
             failureCount++;
+            failedItems.push(`${item.matchedAmcName} - ${response.message || 'Unknown error'}`);
+            console.error(`Failed to process ${item.matchedAmcName}:`, response);
           }
-        } catch (error) {
+        } catch (error: any) {
           failureCount++;
-          console.error(`Error processing ${item.amcName}:`, error);
+          failedItems.push(`${item.matchedAmcName} - API Error`);
+          console.error(`Error processing ${item.matchedAmcName}:`, error);
         }
+      }
+
+      // Show results
+      let message = `Successfully uploaded ${successCount} entries.`;
+      if (duplicateCount > 0) {
+        message += ` ${duplicateCount} duplicates skipped.`;
+      }
+      if (failureCount > 0) {
+        message += ` ${failureCount} entries failed.`;
+      }
+
+      if (failedItems.length > 0) {
+        console.log('Failed items:', failedItems); // Debug log
       }
 
       if (successCount > 0) {
         await Swal.fire(
           "Upload Complete!",
-          `Successfully uploaded ${successCount} entries.${failureCount > 0 ? ` ${failureCount} entries failed.` : ''}`,
-          successCount === matchedItems.length ? "success" : "warning"
+          message,
+          successCount === matchedItems.length - duplicateCount ? "success" : "warning"
         );
 
-        if (successCount === matchedItems.length) {
+        if (successCount > 0) {
           this.router.navigate(['/forms/aum']);
         }
       } else {

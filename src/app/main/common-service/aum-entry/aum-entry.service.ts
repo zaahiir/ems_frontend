@@ -97,4 +97,17 @@ export class AumEntryService {
       }
     });
   }
+
+  checkDuplicate(arnNumber: string, amcId: string, month: string): Observable<{exists: boolean}> {
+    const params = new URLSearchParams({
+      arn_number: arnNumber,
+      amc_id: amcId,
+      month: month
+    });
+    const url = `${this.apiUrl}aumEntry/check_duplicate/?${params.toString()}`;
+
+    return from(axios.get(url, { headers: this.getHeaders() })).pipe(
+      map(response => response.data)
+    );
+  }
 }

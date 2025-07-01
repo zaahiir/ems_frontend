@@ -31,6 +31,7 @@ export class CreateDailyEntryComponent implements OnInit, OnDestroy {
   submitted = false;
   loading = false;
   dataLoading = true;
+  isDocumentUploadEnabled = false;
 
   amcList: any[] = [];
   fundList: any[] = [];
@@ -145,6 +146,12 @@ export class CreateDailyEntryComponent implements OnInit, OnDestroy {
           this.dailyEntryForm.get('fundName')?.disable();
         }
       });
+
+    this.dailyEntryForm.get('transactionMode')?.valueChanges
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(modeId => {
+        this.handleTransactionModeChange(modeId);
+      });
   }
 
   get f() { return this.dailyEntryForm.controls; }
@@ -215,7 +222,36 @@ export class CreateDailyEntryComponent implements OnInit, OnDestroy {
     });
   }
 
+  handleTransactionModeChange(modeId: number | string): void {
+    // Based on your data structure, id: 2 is 'Offline', id: 1 is 'Online'
+    const selectedMode = this.transactionModes.find(mode => mode.id == modeId);
+
+    if (selectedMode) {
+      // Enable upload only for Offline mode (id: 2)
+      this.isDocumentUploadEnabled = selectedMode.id === 2;
+
+      console.log('Transaction mode changed:', selectedMode.transcationModeName,
+                  'Upload enabled:', this.isDocumentUploadEnabled);
+
+      // If switching from Offline to Online, clear any selected file
+      if (!this.isDocumentUploadEnabled && this.selectedFile) {
+        this.removeSelectedFile();
+      }
+    } else {
+      // If no mode selected, disable upload
+      this.isDocumentUploadEnabled = false;
+      if (this.selectedFile) {
+        this.removeSelectedFile();
+      }
+    }
+  }
+
   onFileChange(event: Event): void {
+    if (!this.isDocumentUploadEnabled) {
+      console.log('Document upload is disabled for online transactions');
+      return;
+    }
+
     const input = event.target as HTMLInputElement;
     if (input.files && input.files.length > 0) {
       const file = input.files[0];
@@ -441,6 +477,7 @@ export class CreateDailyEntryComponent implements OnInit, OnDestroy {
     this.submitted = false;
     this.resetFileSelection();
     this.fileError = '';
+    this.isDocumentUploadEnabled = false;
 
     // Reset file input
     const fileInput = document.getElementById('dailyEntryFile') as HTMLInputElement;

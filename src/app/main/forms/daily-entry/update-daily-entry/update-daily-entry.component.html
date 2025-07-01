@@ -89,15 +89,6 @@
           </c-col>
 
           <c-col [cFormFloating]="true" md="6">
-            <select cSelect id="transactionType" formControlName="transactionType" required>
-              <option value="" disabled selected>Select Transaction Type</option>
-              <option [value]="type.id" *ngFor="let type of issueTypes">{{ type.issueTypeName }}</option>
-            </select>
-            <label cLabel for="transactionType" class="ms-2">Transaction Type</label>
-            <c-form-feedback [valid]="false" *ngIf="f['transactionType'].errors && (f['transactionType'].touched || submitted)">Please select a Transaction Type.</c-form-feedback>
-          </c-col>
-
-          <c-col [cFormFloating]="true" md="6">
             <select cSelect id="transactionMode" formControlName="transactionMode" required>
               <option value="" disabled selected>Select Transaction Mode</option>
               <option [value]="mode.id" *ngFor="let mode of transactionModes">{{ mode.transcationModeName }}</option>
@@ -107,11 +98,19 @@
           </c-col>
 
           <c-col [cFormFloating]="true" md="6">
+            <select cSelect id="transactionType" formControlName="transactionType" required>
+              <option value="" disabled selected>Select Transaction Type</option>
+              <option [value]="type.id" *ngFor="let type of issueTypes">{{ type.issueTypeName }}</option>
+            </select>
+            <label cLabel for="transactionType" class="ms-2">Transaction Type</label>
+            <c-form-feedback [valid]="false" *ngIf="f['transactionType'].errors && (f['transactionType'].touched || submitted)">Please select a Transaction Type.</c-form-feedback>
+          </c-col>
+
+          <c-col [cFormFloating]="true" md="6">
             <input cFormControl id="sipDate" formControlName="sipDate" type="date" placeholder="SIP Date" required />
             <label cLabel for="sipDate" class="ms-2">SIP Date</label>
           </c-col>
 
-          <!-- Updated file upload section in the HTML template -->
           <c-col md="6">
             <div class="mb-0">
               <!-- File Input -->
@@ -122,16 +121,18 @@
                 class="form-control"
                 accept=".pdf,.doc,.docx"
                 (change)="onFileChange($event)"
+                [disabled]="isFileUploadDisabled"
               />
               <label cLabel for="dailyEntryFile" class="form-label">
                 <small>Upload Document: Accepted formats: PDF, DOC, DOCX</small>
+                <span *ngIf="isFileUploadDisabled" class="text-muted"> <small>(Available only for Offline transactions)</small> </span>
               </label>
 
               <!-- Error Message -->
               <c-form-feedback [valid]="false" *ngIf="fileError">{{ fileError }}</c-form-feedback>
 
               <!-- Existing File Display -->
-              <div *ngIf="hasExistingFile" class="mt-2 p-2 border rounded bg-light">
+              <div *ngIf="hasExistingFile && !isFileUploadDisabled" class="mt-2 p-2 border rounded bg-light">
                 <div class="d-flex align-items-center justify-content-between">
                   <div class="d-flex align-items-center">
                     <span class="me-2">{{ getFileIcon(existingFileName) }}</span>
@@ -162,7 +163,7 @@
               </div>
 
               <!-- New File Preview -->
-              <div *ngIf="selectedFile" class="mt-2 p-2 border rounded bg-success bg-opacity-10">
+              <div *ngIf="selectedFile && !isFileUploadDisabled" class="mt-2 p-2 border rounded bg-success bg-opacity-10">
                 <div class="d-flex align-items-center">
                   <span class="me-2">{{ getFileIcon(selectedFile.name) }}</span>
                   <span class="text-success">

@@ -35,6 +35,7 @@ export class UpdateDailyEntryComponent implements OnInit, OnDestroy {
   existingFileName: string = '';
   shouldRemoveExistingFile: boolean = false; // Fixed: Changed from string to boolean
   hasExistingFile: boolean = false;
+  isFileUploadDisabled: boolean = true;
 
   amcList: any[] = [];
   fundList: any[] = [];
@@ -56,7 +57,7 @@ export class UpdateDailyEntryComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.entryId = this.route.snapshot.params['id'];
-    this.shouldRemoveExistingFile = false; // Reset on component init
+    this.shouldRemoveExistingFile = false;
     this.loadInitialData();
   }
 
@@ -147,6 +148,75 @@ export class UpdateDailyEntryComponent implements OnInit, OnDestroy {
           this.dailyEntryForm.get('fundName')?.disable();
         }
       });
+
+      this.dailyEntryForm.get('transactionMode')?.valueChanges
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(transactionModeId => {
+        this.handleTransactionModeChange(transactionModeId);
+      });
+
+      const currentTransactionMode = this.dailyEntryForm.get('transactionMode')?.value;
+      if (currentTransactionMode) {
+        this.handleTransactionModeChange(currentTransactionMode);
+      }
+  }
+
+  handleTransactionModeChange(transactionModeId: number | string): void {
+    console.log('Transaction Mode ID received:', transactionModeId);
+
+    if (!transactionModeId || transactionModeId === '') {
+      this.isFileUploadDisabled = true;
+      console.log('No transaction mode selected, disabling file upload');
+      return;
+    }
+
+    // Find the selected transaction mode
+    const selectedMode = this.transactionModes.find(mode => mode.id == transactionModeId);
+    console.log('Selected transaction mode:', selectedMode);
+
+    if (selectedMode) {
+      // Enable file upload only for "Offline" mode (check both id and name for safety)
+      const isOfflineMode = selectedMode.id === 2 ||
+                          selectedMode.transcationModeName.toLowerCase() === 'offline';
+
+      this.isFileUploadDisabled = !isOfflineMode;
+
+      console.log('Transaction Mode:', selectedMode.transcationModeName,
+                  'Is Offline:', isOfflineMode,
+                  'File Upload Disabled:', this.isFileUploadDisabled);
+
+      // If switching from Offline to Online mode, clear any selected file
+      if (!isOfflineMode && this.selectedFile) {
+        this.clearFileSelection();
+      }
+    } else {
+      this.isFileUploadDisabled = true;
+      console.log('Transaction mode not found in list, disabling file upload');
+    }
+  }
+
+  clearFileSelection(): void {
+    if (this.selectedFile) {
+      this.selectedFile = null;
+      this.fileError = '';
+
+      // Clear the file input
+      const fileInput = document.getElementById('dailyEntryFile') as HTMLInputElement;
+      if (fileInput) {
+        fileInput.value = '';
+      }
+
+      // Show info message when clearing file due to mode change
+      Swal.fire({
+        title: 'File Cleared',
+        text: 'File upload is only available for Offline transactions. Your selected file has been cleared.',
+        icon: 'info',
+        timer: 3000,
+        showConfirmButton: false,
+        toast: true,
+        position: 'top-end'
+      });
+    }
   }
 
   searchClient(): void {
@@ -196,10 +266,8 @@ export class UpdateDailyEntryComponent implements OnInit, OnDestroy {
         if (entryData.dailyEntryFile) {
           this.hasExistingFile = true;
           this.existingFileUrl = entryData.dailyEntryFile;
-          // Extract filename from URL
           this.existingFileName = this.extractFileNameFromUrl(entryData.dailyEntryFile);
         } else {
-          // No file exists
           this.hasExistingFile = false;
           this.existingFileUrl = '';
           this.existingFileName = '';
@@ -232,7 +300,7 @@ export class UpdateDailyEntryComponent implements OnInit, OnDestroy {
           clientPhoneCountryCode: entryData.dailyEntryClientCountryCode,
           clientMobileNumber: entryData.dailyEntryClientMobileNumber,
           clientFolioNumber: entryData.dailyEntryClientFolioNumber,
-          fundHouse: selectedAmcId, // Use the found AMC ID
+          fundHouse: selectedAmcId,
           fundName: fundOption ? fundOption.id : '',
           amount: entryData.dailyEntryAmount,
           clientChequeNumber: entryData.dailyEntryClientChequeNumber,
@@ -241,12 +309,18 @@ export class UpdateDailyEntryComponent implements OnInit, OnDestroy {
           sipDate: entryData.dailyEntrySipDate,
           transactionAddDetail: entryData.dailyEntryTransactionAddDetails,
           staffName: entryData.dailyEntryStaffName
-        }, { emitEvent: false });
+        }, { emitEvent: false }); // Prevent immediate value change events
 
         // Enable fund name dropdown if funds are available
         if (this.fundList.length > 0) {
           this.dailyEntryForm.get('fundName')?.enable();
         }
+
+        // Manually trigger transaction mode change to set file upload state
+        if (transactionModeOption) {
+          this.handleTransactionModeChange(transactionModeOption.id);
+        }
+
       } else {
         this.handleErrorResponse('Failed to load entry data or no data found.');
       }

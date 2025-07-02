@@ -5,6 +5,9 @@
           <div class="col-auto">
             <a cButton [routerLink]="['/forms/gst/add']" color="primary" role="button">Create New GST Entry Form</a>
           </div>
+          <div class="col-auto">
+            <a cButton [routerLink]="['/forms/gst/upload']" color="primary" role="button">Upload New GST Entry Form</a>
+          </div>
         </form>
       </c-card-body>
     </c-card>
@@ -14,10 +17,10 @@
       <c-card class="mb-4">
         <c-card-body>
           <c-col md="3" class="mb-4 flex justify-content-md-end">
-          <input cFormControl id="validationCustom09" 
+          <input cFormControl id="validationCustom09"
           (input)="search($event)"
           [(ngModel)]="searchTerm"
-          type="search" 
+          type="search"
           placeholder="search" />
           </c-col>
           <table [hover]="true" [striped]="true" [bordered]="true" cTable>
@@ -32,7 +35,7 @@
               <th scope="col">IGST</th>
               <th scope="col">SGST</th>
               <th scope="col">CGST</th>
-              <th scope="col">Action</th>  
+              <th scope="col">Action</th>
             </tr>
             </thead>
             <tbody>
@@ -68,4 +71,3 @@
       </c-card>
     </c-col>
 </c-row>
-  

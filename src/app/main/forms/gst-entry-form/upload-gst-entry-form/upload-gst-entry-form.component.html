@@ -1,0 +1,211 @@
+<!-- upload-gst-entry-form.component.html -->
+<c-row ngPreserveWhitespaces>
+  <c-col xs="12">
+    <c-card class="mb-4">
+      <c-card-header>
+        <strong>Upload GST Entry Form</strong>
+        <button cButton color="secondary" size="sm" class="float-end" (click)="goBack()">
+          Back to List
+        </button>
+      </c-card-header>
+      <c-card-body>
+        <!-- Upload Form -->
+        <form [formGroup]="uploadForm" class="row g-3 mb-4" *ngIf="!uploaded">
+          <c-col [cFormFloating]="true" md="6">
+            <select cSelect cFormControl id="arnSelect" formControlName="selectedArn" required>
+              <option value="" disabled selected>Select an ARN</option>
+              <option [value]="item.id" *ngFor="let item of arn">{{ item.arnNumber }}</option>
+            </select>
+            <label cLabel for="arnSelect" class="ms-2">ARN Number</label>
+            <c-form-feedback [valid]="false" *ngIf="f['selectedArn'].errors && f['selectedArn'].touched">
+              Please select an ARN.
+            </c-form-feedback>
+          </c-col>
+
+          <c-col md="6">
+            <input
+              #fileInput
+              type="file"
+              class="form-control"
+              accept=".xlsx,.xls"
+              (change)="onFileSelected($event)"
+              formControlName="excelFile"
+              required
+            />
+            <c-form-feedback [valid]="false" *ngIf="f['excelFile'].errors && f['excelFile'].touched">
+              Please select an Excel file.
+            </c-form-feedback>
+          </c-col>
+
+          <c-col xs="12">
+            <button
+              cButton
+              color="primary"
+              type="button"
+              (click)="processExcelFile()"
+              [disabled]="loading || uploadForm.invalid"
+            >
+              <span *ngIf="loading" class="spinner-border spinner-border-sm me-2"></span>
+              {{ loading ? 'Processing...' : 'Process Excel File' }}
+            </button>
+            <button cButton color="secondary" type="button" class="ms-2" (click)="onReset()">
+              Reset
+            </button>
+          </c-col>
+        </form>
+
+        <!-- Processing Progress -->
+        <div *ngIf="processing" class="mb-4">
+          <h6>Processing Records...</h6>
+          <c-progress>
+            <c-progress-bar [value]="processingProgress">{{ processingProgress | number:'1.0-0' }}%</c-progress-bar>
+          </c-progress>
+          <small class="text-muted">{{ processedRecords }} of {{ totalRecords }} records processed</small>
+        </div>
+
+        <!-- Data Table -->
+        <div *ngIf="uploaded && excelData.length > 0" class="table-responsive">
+          <table [hover]="true" [striped]="true" [bordered]="true" cTable>
+            <thead>
+              <tr>
+                <th scope="col" style="width: 50px;">
+                  <input
+                    type="checkbox"
+                    class="form-check-input"
+                    [checked]="getSelectedCount() === getValidCount() && getValidCount() > 0"
+                    [indeterminate]="getSelectedCount() > 0 && getSelectedCount() < getValidCount()"
+                    (change)="toggleAllSelection()"
+                  />
+                </th>
+                <th scope="col">#</th>
+                <th scope="col">Invoice To (Excel)</th>
+                <th scope="col">GST No.</th>
+                <th scope="col">Invoice No.</th>
+                <th scope="col">Invoice Date</th>
+                <th scope="col">Taxable Value</th>
+                <th scope="col">IGST</th>
+                <th scope="col">CGST</th>
+                <th scope="col">SGST</th>
+                <th scope="col">Total Value</th>
+                <th scope="col">Matched AMC</th>
+                <th scope="col">Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let item of excelData; let i = index"
+                  [class.table-success]="item.selected && !item.errors.length"
+                  [class.table-warning]="item.isDuplicate"
+                  [class.table-danger]="item.errors.length">
+                <td>
+                  <input
+                    type="checkbox"
+                    class="form-check-input"
+                    [checked]="item.selected"
+                    [disabled]="item.errors.length > 0"
+                    (change)="toggleRowSelection(i)"
+                  />
+                </td>
+                <td>{{ item.sNo }}</td>
+                <td>
+                  <strong>{{ item.invoicedTo }}</strong>
+                </td>
+                <td>{{ item.gstNo }}</td>
+                <td>{{ item.invoiceNo }}</td>
+                <td>{{ item.invoiceDate | date:'shortDate' }}</td>
+                <td>{{ item.taxableValue | currency:'INR':'symbol':'1.2-2' }}</td>
+                <td>{{ item.igst | currency:'INR':'symbol':'1.2-2' }}</td>
+                <td>{{ item.cgst | currency:'INR':'symbol':'1.2-2' }}</td>
+                <td>{{ item.sgst | currency:'INR':'symbol':'1.2-2' }}</td>
+                <td>{{ item.totalInvoiceValue | currency:'INR':'symbol':'1.2-2' }}</td>
+                <td>
+                  <span *ngIf="item.matchedAmcName" class="badge bg-success">
+                    {{ item.matchedAmcName }}
+                  </span>
+                  <span *ngIf="!item.matchedAmcName" class="badge bg-danger">
+                    Not Matched
+                  </span>
+                </td>
+                <td>
+                  <div class="d-flex flex-column gap-1">
+                    <c-badge *ngIf="item.isDuplicate" color="warning" size="sm">
+                      Duplicate
+                    </c-badge>
+                    <c-badge *ngIf="item.errors.length" color="danger" size="sm">
+                      {{ item.errors.length }} Error(s)
+                    </c-badge>
+                    <c-badge *ngIf="!item.errors.length && !item.isDuplicate" color="success" size="sm">
+                      Valid
+                    </c-badge>
+                  </div>
+                  <!-- Error Details -->
+                  <div *ngIf="item.errors.length" class="mt-1">
+                    <small class="text-danger" *ngFor="let error of item.errors">
+                      • {{ error }}<br>
+                    </small>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Results Summary -->
+        <div *ngIf="uploaded && !processing" class="row mb-4">
+          <c-col md="3">
+            <div class="d-grid">
+              <c-badge color="primary" class="p-2">
+                Total Records: {{ excelData.length }}
+              </c-badge>
+            </div>
+          </c-col>
+          <c-col md="3">
+            <div class="d-grid">
+              <c-badge color="success" class="p-2">
+                Valid Records: {{ getValidCount() }}
+              </c-badge>
+            </div>
+          </c-col>
+          <c-col md="3">
+            <div class="d-grid">
+              <c-badge color="warning" class="p-2">
+                Duplicates: {{ getDuplicateCount() }}
+              </c-badge>
+            </div>
+          </c-col>
+          <c-col md="3">
+            <div class="d-grid">
+              <c-badge color="danger" class="p-2">
+                Errors: {{ getErrorCount() }}
+              </c-badge>
+            </div>
+          </c-col>
+        </div>
+
+        <!-- Action Buttons -->
+        <div *ngIf="uploaded && !processing" class="mb-3">
+          <button
+            cButton
+            color="success"
+            (click)="saveSelectedEntries()"
+            [disabled]="getSelectedCount() === 0 || loading"
+          >
+            <span *ngIf="loading" class="spinner-border spinner-border-sm me-2"></span>
+            Save Selected ({{ getSelectedCount() }})
+          </button>
+          <button cButton color="info" class="ms-2" (click)="toggleAllSelection()">
+            {{ getSelectedCount() === getValidCount() ? 'Unselect All' : 'Select All Valid' }}
+          </button>
+          <button cButton color="secondary" class="ms-2" (click)="onReset()">
+            Upload New File
+          </button>
+        </div>
+
+        <!-- No Data Message -->
+        <div *ngIf="uploaded && excelData.length === 0" class="text-center py-4">
+          <h5 class="text-muted">No valid data found in the Excel file</h5>
+          <p class="text-muted">Please check the file format and try again.</p>
+        </div>
+      </c-card-body>
+    </c-card>
+  </c-col>
+</c-row>

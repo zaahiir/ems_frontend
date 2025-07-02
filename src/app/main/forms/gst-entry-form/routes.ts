@@ -27,6 +27,13 @@ export const gstRoutes: Routes = [
         },
       },
       {
+        path: 'upload',
+        loadComponent: () => import('./upload-gst-entry-form/upload-gst-entry-form.component').then(m => m.UploadGstEntryFormComponent),
+        data: {
+          title: 'Upload'
+        },
+      },
+      {
         path: 'update/:id',
         loadComponent: () => import('./update-gst-entry-form/update-gst-entry-form.component').then(m => m.UpdateGstEntryFormComponent),
         data: {

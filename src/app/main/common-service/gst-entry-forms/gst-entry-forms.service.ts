@@ -4,7 +4,6 @@ import axios from 'axios';
 import { Observable, from } from 'rxjs';
 import { map } from 'rxjs/operators';
 
-
 interface ApiResponse<T> {
   code: number;
   data: T;
@@ -24,13 +23,15 @@ export class GstEntryFormsService {
   private processing: string;
   private deletion: string;
   private amc: string;
+  private arn: string;
 
-  constructor() {   
+  constructor() {
     this.apiUrl = new BaseAPIUrl().getUrl(baseURLType)
     this.lists = this.apiUrl + "gstEntry/listing/";
     this.processing = this.apiUrl + "gstEntry/";
     this.deletion = this.apiUrl + "gstEntry/0/deletion/";
     this.amc = this.apiUrl + "amcEntry/";
+    this.arn = this.apiUrl + "arnEntry/";
   }
 
   private getHeaders() {
@@ -39,7 +40,7 @@ export class GstEntryFormsService {
     };
   }
 
-  // List all/particular Aum
+  // List all/particular GST entries
   listsGst(page: number, pageSize: number, search: string = ''): Observable<ApiResponse<any>> {
     const params = new URLSearchParams({
       page: page.toString(),
@@ -47,7 +48,7 @@ export class GstEntryFormsService {
       search: search
     });
     const url = `${this.lists}?${params.toString()}`;
-    
+
     return from(axios.get(url, { headers: this.getHeaders() })).pipe(
       map(response => response.data)
     );
@@ -71,21 +72,75 @@ export class GstEntryFormsService {
       map(response => response.data)
     );
   }
-  
-  // Delete particular Gst
-  deleteGst(id: any){
+
+  // Delete particular GST entry
+  deleteGst(id: any): Promise<any> {
     return axios.get(this.deletion.replace('0', id), {
-      headers:{
+      headers: {
         "Authorization": `Bearer ${localStorage.getItem('access_token')}`
       }
     });
   }
 
-  getAmc() {
+  // Get AMC list
+  getAmc(): Promise<any> {
     return axios.get(this.amc, {
       headers: {
         "Authorization": `Bearer ${localStorage.getItem('access_token')}`
       }
     });
+  }
+
+  // Get ARN list
+  getArn(): Promise<any> {
+    return axios.get(this.arn, {
+      headers: {
+        "Authorization": `Bearer ${localStorage.getItem('access_token')}`
+      }
+    });
+  }
+
+  // Check for duplicate GST entries (updated method signature)
+  checkDuplicate(arnNumber: string, amcId: string, invoiceNumber: string, invoiceDate: string): Observable<{exists: boolean, message?: string}> {
+    const params = new URLSearchParams({
+      arn_number: arnNumber,
+      amc_id: amcId,
+      invoice_number: invoiceNumber,
+      invoice_date: invoiceDate
+    });
+    const url = `${this.apiUrl}gstEntry/check_duplicate/?${params.toString()}`;
+
+    return from(axios.get(url, { headers: this.getHeaders() })).pipe(
+      map(response => response.data)
+    );
+  }
+
+  // Bulk upload GST entries
+  bulkUploadGst(data: any[]): Observable<ApiResponse<any>> {
+    const url = `${this.apiUrl}gstEntry/bulk_upload/`;
+    return from(axios.post(url, { entries: data }, { headers: this.getHeaders() })).pipe(
+      map(response => response.data)
+    );
+  }
+
+  // Validate GST data before upload
+  validateGstData(data: any[]): Observable<ApiResponse<any>> {
+    const url = `${this.apiUrl}gstEntry/validate_bulk_data/`;
+    return from(axios.post(url, { entries: data }, { headers: this.getHeaders() })).pipe(
+      map(response => response.data)
+    );
+  }
+
+  // Get AMC suggestions for fuzzy matching
+  getAmcSuggestions(searchTerm: string): Observable<ApiResponse<any>> {
+    const params = new URLSearchParams({
+      search: searchTerm,
+      fuzzy: 'true'
+    });
+    const url = `${this.amc}suggestions/?${params.toString()}`;
+
+    return from(axios.get(url, { headers: this.getHeaders() })).pipe(
+      map(response => response.data)
+    );
   }
 }

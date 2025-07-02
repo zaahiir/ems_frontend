@@ -4,9 +4,6 @@
     <c-card class="mb-4">
       <c-card-header>
         <strong>Upload GST Entry Form</strong>
-        <button cButton color="secondary" size="sm" class="float-end" (click)="goBack()">
-          Back to List
-        </button>
       </c-card-header>
       <c-card-body>
         <!-- Upload Form -->
@@ -68,16 +65,7 @@
           <table [hover]="true" [striped]="true" [bordered]="true" cTable>
             <thead>
               <tr>
-                <th scope="col" style="width: 50px;">
-                  <input
-                    type="checkbox"
-                    class="form-check-input"
-                    [checked]="getSelectedCount() === getValidCount() && getValidCount() > 0"
-                    [indeterminate]="getSelectedCount() > 0 && getSelectedCount() < getValidCount()"
-                    (change)="toggleAllSelection()"
-                  />
-                </th>
-                <th scope="col">#</th>
+                <th scope="col">S.No</th>
                 <th scope="col">Invoice To (Excel)</th>
                 <th scope="col">GST No.</th>
                 <th scope="col">Invoice No.</th>
@@ -96,15 +84,6 @@
                   [class.table-success]="item.selected && !item.errors.length"
                   [class.table-warning]="item.isDuplicate"
                   [class.table-danger]="item.errors.length">
-                <td>
-                  <input
-                    type="checkbox"
-                    class="form-check-input"
-                    [checked]="item.selected"
-                    [disabled]="item.errors.length > 0"
-                    (change)="toggleRowSelection(i)"
-                  />
-                </td>
                 <td>{{ item.sNo }}</td>
                 <td>
                   <strong>{{ item.invoicedTo }}</strong>
@@ -191,9 +170,6 @@
           >
             <span *ngIf="loading" class="spinner-border spinner-border-sm me-2"></span>
             Save Selected ({{ getSelectedCount() }})
-          </button>
-          <button cButton color="info" class="ms-2" (click)="toggleAllSelection()">
-            {{ getSelectedCount() === getValidCount() ? 'Unselect All' : 'Select All Valid' }}
           </button>
           <button cButton color="secondary" class="ms-2" (click)="onReset()">
             Upload New File

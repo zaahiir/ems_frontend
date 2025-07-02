@@ -452,21 +452,6 @@ export class UploadGstEntryFormComponent implements OnInit, OnDestroy {
     this.processing = false;
   }
 
-  toggleRowSelection(index: number): void {
-    if (this.excelData[index].errors.length === 0) {
-      this.excelData[index].selected = !this.excelData[index].selected;
-    }
-  }
-
-  toggleAllSelection(): void {
-    const validRows = this.excelData.filter(row => row.errors.length === 0);
-    const allValidSelected = validRows.every(row => row.selected);
-
-    validRows.forEach(row => {
-      row.selected = !allValidSelected;
-    });
-  }
-
   getSelectedCount(): number {
     return this.excelData.filter(row => row.selected && row.errors.length === 0).length;
   }
@@ -610,9 +595,5 @@ export class UploadGstEntryFormComponent implements OnInit, OnDestroy {
     if (this.fileInput) {
       this.fileInput.nativeElement.value = '';
     }
-  }
-
-  goBack(): void {
-    this.router.navigate(['/forms/gst']);
   }
 }

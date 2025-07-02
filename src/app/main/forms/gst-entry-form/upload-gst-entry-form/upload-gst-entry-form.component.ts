@@ -26,6 +26,7 @@ interface ExcelGstData {
   matchedAmcName?: string;
   duplicateCheck?: boolean;
   isDuplicate?: boolean;
+  gstRegistered: boolean; // true = GST Registered, false = Not GST Registered
   errors: string[]; // Required property - always initialized as array
 }
 
@@ -155,8 +156,8 @@ export class UploadGstEntryFormComponent implements OnInit, OnDestroy {
       if (data[i] && data[i].some((cell: any) =>
         typeof cell === 'string' &&
         (cell.toLowerCase().includes('s.no') ||
-         cell.toLowerCase().includes('serial') ||
-         cell.toLowerCase().includes('s no')))) {
+        cell.toLowerCase().includes('serial') ||
+        cell.toLowerCase().includes('s no')))) {
         headerRowIndex = i;
         break;
       }
@@ -186,6 +187,7 @@ export class UploadGstEntryFormComponent implements OnInit, OnDestroy {
         sgst: parseFloat(row[8]) || 0,
         totalInvoiceValue: parseFloat(row[9]) || 0,
         selected: true,
+        gstRegistered: (parseFloat(row[6]) > 0 || parseFloat(row[7]) > 0 || parseFloat(row[8]) > 0), // Auto-detect based on tax values
         errors: [] // Always initialize as empty array
       };
 
@@ -486,6 +488,13 @@ export class UploadGstEntryFormComponent implements OnInit, OnDestroy {
       return;
     }
 
+    // Check if all selected rows have GST registration status set
+    const rowsWithoutGstStatus = selectedRows.filter(row => row.gstRegistered === undefined || row.gstRegistered === null);
+    if (rowsWithoutGstStatus.length > 0) {
+      await Swal.fire('Warning', 'Please select GST registration status for all selected records', 'warning');
+      return;
+    }
+
     const result = await Swal.fire({
       title: 'Confirm Save',
       text: `Save ${selectedRows.length} GST entries?`,
@@ -513,7 +522,7 @@ export class UploadGstEntryFormComponent implements OnInit, OnDestroy {
           gstInvoiceNumber: row.invoiceNo,
           gstAmcName: row.matchedAmcId,
           gstArnNumber: this.selectedArn,
-          gstRegistered: (row.igst > 0 || row.cgst > 0 || row.sgst > 0),
+          gstRegistered: row.gstRegistered, // Use individual record's GST registration status
           gstTotalValue: row.totalInvoiceValue,
           gstTaxableValue: row.taxableValue,
           gstIGst: row.igst,
@@ -528,7 +537,6 @@ export class UploadGstEntryFormComponent implements OnInit, OnDestroy {
 
         if (response.code === 1) {
           successCount++;
-          // Mark row as saved
           row.selected = false;
         } else {
           errorCount++;

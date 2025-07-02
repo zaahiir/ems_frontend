@@ -134,7 +134,7 @@ export interface amcMasterCommonInterface {
     amcMobile: string;
     amcAddress: string;
     amcState: stateCommonInterface | number | null ;
-    amcCountry: string; 
+    amcCountry: string;
     amcPinCode: number;
     amcGstNo: string;
     amcGstType: string;
@@ -148,7 +148,7 @@ export interface fundNameCommonInterface {
     fundAmcName: string;
     amcMobile: string;
     fundName: string;
-    schemeCode: string; 
+    schemeCode: string;
     hideStatus: number,
     createdAt: string,
     updatedAt: string,
@@ -158,11 +158,11 @@ export interface arnMasterCommonInterface {
     id: number,
     arnNumber: string;
     arnName: string;
-    arnMobile: string;    
+    arnMobile: string;
     fullMobile: string;
     arnAddress: string;
     arnState: stateCommonInterface | number;
-    arnCountry: string; 
+    arnCountry: string;
     arnPinCode: number;
     arnEmail: string;
     arnEuin: string;
@@ -258,7 +258,7 @@ export interface statementCommonInterface {
     id: number,
     statementDate: string;
     statementInvestorName: string;
-    statementInvestorPanNo: string; 
+    statementInvestorPanNo: string;
     statementInvestmentDate: string;
     statementAmcName: amcMasterCommonInterface | number;
     statementFundName: string;
@@ -340,7 +340,7 @@ export interface employeeCommonInterface {
     id: number,
     employeeName: string;
     employeeEmail: string;
-    employeePhone: string;   
+    employeePhone: string;
     fullMobile: string;
     employeePassword: string;
     employeeAddress: string;
@@ -359,7 +359,7 @@ export interface clientCommonInterface {
     clientName: string;
     clientEmail: string;
     clientPhone: string;
-    clientAlternatePhone: string; 
+    clientAlternatePhone: string;
     full_mobile: string;
     clientPanNo: string;
     clientKycNo: string;
@@ -586,7 +586,7 @@ export interface clientPowerOfAttorneyCommonInterface {
     hideStatus: number;
     createdAt: string;
     updatedAt: string;
-}   
+}
 
 export interface clientGuardianCommonInterface {
     id: number,
@@ -597,7 +597,7 @@ export interface clientGuardianCommonInterface {
     hideStatus: number;
     createdAt: string;
     updatedAt: string;
-}   
+}
 
 export interface dailyEntryCommonInterface {
     id: number,
@@ -618,4 +618,5 @@ export interface dailyEntryCommonInterface {
     createdAt: string;
     updatedAt: string;
 }
+
 

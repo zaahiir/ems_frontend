@@ -76,12 +76,13 @@
                 <th scope="col">SGST</th>
                 <th scope="col">Total Value</th>
                 <th scope="col">Matched AMC</th>
-                <th scope="col">Status</th>
+                <th scope="col">GST Registration</th>
               </tr>
             </thead>
+
+            <!-- Updated table body - add GST registration radio buttons -->
             <tbody>
               <tr *ngFor="let item of excelData; let i = index"
-                  [class.table-success]="item.selected && !item.errors.length"
                   [class.table-warning]="item.isDuplicate"
                   [class.table-danger]="item.errors.length">
                 <td>{{ item.sNo }}</td>
@@ -91,36 +92,35 @@
                 <td>{{ item.gstNo }}</td>
                 <td>{{ item.invoiceNo }}</td>
                 <td>{{ item.invoiceDate | date:'shortDate' }}</td>
-                <td>{{ item.taxableValue | currency:'INR':'symbol':'1.2-2' }}</td>
-                <td>{{ item.igst | currency:'INR':'symbol':'1.2-2' }}</td>
-                <td>{{ item.cgst | currency:'INR':'symbol':'1.2-2' }}</td>
-                <td>{{ item.sgst | currency:'INR':'symbol':'1.2-2' }}</td>
-                <td>{{ item.totalInvoiceValue | currency:'INR':'symbol':'1.2-2' }}</td>
+                <td>{{ item.taxableValue | number:'1.2-2' }}</td>
+                <td>{{ item.igst | number:'1.2-2' }}</td>
+                <td>{{ item.cgst | number:'1.2-2' }}</td>
+                <td>{{ item.sgst | number:'1.2-2' }}</td>
+                <td>{{ item.totalInvoiceValue | number:'1.2-2' }}</td>
                 <td>
-                  <span *ngIf="item.matchedAmcName" class="badge bg-success">
+                  <span *ngIf="item.matchedAmcName">
                     {{ item.matchedAmcName }}
                   </span>
-                  <span *ngIf="!item.matchedAmcName" class="badge bg-danger">
+                  <span *ngIf="!item.matchedAmcName">
                     Not Matched
                   </span>
-                </td>
-                <td>
-                  <div class="d-flex flex-column gap-1">
-                    <c-badge *ngIf="item.isDuplicate" color="warning" size="sm">
-                      Duplicate
-                    </c-badge>
-                    <c-badge *ngIf="item.errors.length" color="danger" size="sm">
-                      {{ item.errors.length }} Error(s)
-                    </c-badge>
-                    <c-badge *ngIf="!item.errors.length && !item.isDuplicate" color="success" size="sm">
-                      Valid
-                    </c-badge>
-                  </div>
                   <!-- Error Details -->
                   <div *ngIf="item.errors.length" class="mt-1">
                     <small class="text-danger" *ngFor="let error of item.errors">
                       • {{ error }}<br>
                     </small>
+                  </div>
+                </td>
+                <td>
+                  <div class="d-flex justify-content-center">
+                    <c-form-check>
+                      <input cFormCheckInput type="checkbox"
+                            [id]="'gst-reg-' + i"
+                            [(ngModel)]="item.gstRegistered">
+                      <label cFormCheckLabel [for]="'gst-reg-' + i" class="ms-1">
+                        GST Registered
+                      </label>
+                    </c-form-check>
                   </div>
                 </td>
               </tr>

@@ -51,7 +51,7 @@ export class UploadGstEntryFormComponent implements OnInit, OnDestroy {
   arn: arnMasterCommonInterface[] = [];
   excelData: ExcelGstData[] = [];
   selectedArn: string = '';
-  selectedFile: File | null = null; // Store file separately
+  selectedFile: File | null = null;
 
   private destroy$ = new Subject<void>();
 
@@ -117,7 +117,6 @@ export class UploadGstEntryFormComponent implements OnInit, OnDestroy {
         return;
       }
 
-      // Store file separately and set form control to filename
       this.selectedFile = file;
       this.uploadForm.patchValue({ excelFile: file.name });
     }
@@ -190,23 +189,30 @@ export class UploadGstEntryFormComponent implements OnInit, OnDestroy {
         return Math.round((value + Number.EPSILON) * 100) / 100;
       };
 
+      // Parse numeric values safely
+      const parseNumeric = (value: any): number => {
+        if (value === null || value === undefined || value === '') return 0;
+        const parsed = parseFloat(value.toString().replace(/[^\d.-]/g, ''));
+        return isNaN(parsed) ? 0 : parsed;
+      };
+
       const excelRow: ExcelGstData = {
         sNo: parseInt(row[0]) || i - headerRowIndex,
         invoicedTo: row[1]?.toString().trim() || '',
         gstNo: row[2]?.toString().trim() || '',
         invoiceNo: row[3]?.toString().trim() || '',
         invoiceDate: this.parseExcelDate(row[4]),
-        taxableValue: roundTo2Decimals(parseFloat(row[5]) || 0),
-        igst: roundTo2Decimals(parseFloat(row[6]) || 0),
-        cgst: roundTo2Decimals(parseFloat(row[7]) || 0),
-        sgst: roundTo2Decimals(parseFloat(row[8]) || 0),
-        totalInvoiceValue: roundTo2Decimals(parseFloat(row[9]) || 0),
+        taxableValue: roundTo2Decimals(parseNumeric(row[5])),
+        igst: roundTo2Decimals(parseNumeric(row[6])),
+        cgst: roundTo2Decimals(parseNumeric(row[7])),
+        sgst: roundTo2Decimals(parseNumeric(row[8])),
+        totalInvoiceValue: roundTo2Decimals(parseNumeric(row[9])),
         selected: true,
-        gstRegistered: (parseFloat(row[6]) > 0 || parseFloat(row[7]) > 0 || parseFloat(row[8]) > 0),
+        gstRegistered: (parseNumeric(row[6]) > 0 || parseNumeric(row[7]) > 0 || parseNumeric(row[8]) > 0),
         errors: []
       };
 
-      // Validate required fields
+      // Validate required fields without calculation validation
       this.validateExcelRow(excelRow);
 
       // Match AMC using improved fuzzy logic
@@ -220,20 +226,17 @@ export class UploadGstEntryFormComponent implements OnInit, OnDestroy {
   }
 
   private validateExcelRow(row: ExcelGstData): void {
+    // Basic validation without calculation checks
     if (!row.invoicedTo) row.errors.push('Missing Invoiced To');
     if (!row.invoiceNo) row.errors.push('Missing Invoice Number');
     if (!row.invoiceDate) row.errors.push('Invalid Invoice Date');
-    if (row.totalInvoiceValue <= 0) row.errors.push('Invalid Total Value');
-    if (row.taxableValue < 0) row.errors.push('Invalid Taxable Value');
-    if (row.igst < 0) row.errors.push('Invalid IGST Value');
-    if (row.cgst < 0) row.errors.push('Invalid CGST Value');
-    if (row.sgst < 0) row.errors.push('Invalid SGST Value');
+    if (row.totalInvoiceValue <= 0) row.errors.push('Invalid Total Invoice Value');
 
-    // Check if calculated total matches
-    const calculatedTotal = row.taxableValue + row.igst + row.cgst + row.sgst;
-    if (Math.abs(calculatedTotal - row.totalInvoiceValue) > 0.01) {
-      row.errors.push('Total value mismatch with calculated amount');
-    }
+    // Optional: Check for negative values (but don't validate calculations)
+    if (row.taxableValue < 0) row.errors.push('Taxable Value cannot be negative');
+    if (row.igst < 0) row.errors.push('IGST cannot be negative');
+    if (row.cgst < 0) row.errors.push('CGST cannot be negative');
+    if (row.sgst < 0) row.errors.push('SGST cannot be negative');
   }
 
   private parseExcelDate(dateValue: any): string {
@@ -258,14 +261,6 @@ export class UploadGstEntryFormComponent implements OnInit, OnDestroy {
       if (typeof dateValue === 'string') {
         // Clean the date string
         const cleanDate = dateValue.trim().replace(/\s+/g, ' ');
-
-        // Try different date formats
-        const formats = [
-          /^\d{1,2}-\w{3}-\d{2,4}$/, // 30-Apr-25 or 30-Apr-2025
-          /^\d{1,2}\/\d{1,2}\/\d{2,4}$/, // 30/04/25 or 30/04/2025
-          /^\d{4}-\d{1,2}-\d{1,2}$/, // 2025-04-30
-          /^\d{1,2}-\d{1,2}-\d{2,4}$/ // 30-04-25 or 30-04-2025
-        ];
 
         let parsedDate: Date | null = null;
 
@@ -408,6 +403,7 @@ export class UploadGstEntryFormComponent implements OnInit, OnDestroy {
 
   private findPartialMatch(invoicedTo: string, amcList: amcMasterCommonInterface[]): { amc: amcMasterCommonInterface, score: number } | null {
     const mappings = [
+      { patterns: ['ADITYA', 'BIRLA'], target: 'ADITYA BIRLA' },
       { patterns: ['DSP', 'BLACKROCK'], target: 'DSP' },
       { patterns: ['SBI', 'FUNDS'], target: 'SBI' },
       { patterns: ['EDELWEISS', 'EDELWISE'], target: 'EDELWEISS' },
@@ -427,7 +423,8 @@ export class UploadGstEntryFormComponent implements OnInit, OnDestroy {
       { patterns: ['CANARA', 'ROBECO'], target: 'CANARA' },
       { patterns: ['PRINCIPAL', 'MUTUAL'], target: 'PRINCIPAL' },
       { patterns: ['SUNDARAM', 'MUTUAL'], target: 'SUNDARAM' },
-      { patterns: ['QUANTUM', 'MUTUAL'], target: 'QUANTUM' }
+      { patterns: ['QUANTUM', 'MUTUAL'], target: 'QUANTUM' },
+      { patterns: ['BANDHAN', 'MUTUAL'], target: 'BANDHAN' }
     ];
 
     for (const mapping of mappings) {
@@ -438,7 +435,8 @@ export class UploadGstEntryFormComponent implements OnInit, OnDestroy {
       if (hasAllPatterns) {
         // Find AMC that contains the target keyword
         for (const amc of amcList) {
-          if (amc.amcName.toUpperCase().includes(mapping.target)) {
+          const amcUpper = amc.amcName.toUpperCase();
+          if (amcUpper.includes(mapping.target)) {
             return { amc, score: 0.8 };
           }
         }
@@ -567,12 +565,10 @@ export class UploadGstEntryFormComponent implements OnInit, OnDestroy {
     return this.excelData.filter(row => row.isDuplicate).length;
   }
 
-  // Helper method to safely check if row has errors
   hasErrors(row: ExcelGstData): boolean {
     return row.errors.length > 0;
   }
 
-  // Helper method to get error count for a row
   getRowErrorCount(row: ExcelGstData): number {
     return row.errors.length;
   }
@@ -582,13 +578,6 @@ export class UploadGstEntryFormComponent implements OnInit, OnDestroy {
 
     if (selectedRows.length === 0) {
       await Swal.fire('Warning', 'No valid entries selected for saving', 'warning');
-      return;
-    }
-
-    // Check if all selected rows have GST registration status set
-    const rowsWithoutGstStatus = selectedRows.filter(row => row.gstRegistered === undefined || row.gstRegistered === null);
-    if (rowsWithoutGstStatus.length > 0) {
-      await Swal.fire('Warning', 'Please select GST registration status for all selected records', 'warning');
       return;
     }
 
@@ -702,7 +691,7 @@ export class UploadGstEntryFormComponent implements OnInit, OnDestroy {
     this.processingProgress = 0;
     this.processedRecords = 0;
     this.totalRecords = 0;
-    this.selectedFile = null; // Reset selected file
+    this.selectedFile = null;
     if (this.fileInput) {
       this.fileInput.nativeElement.value = '';
     }

@@ -114,33 +114,4 @@ export class GstEntryFormsService {
       map(response => response.data)
     );
   }
-
-  // Bulk upload GST entries
-  bulkUploadGst(data: any[]): Observable<ApiResponse<any>> {
-    const url = `${this.apiUrl}gstEntry/bulk_upload/`;
-    return from(axios.post(url, { entries: data }, { headers: this.getHeaders() })).pipe(
-      map(response => response.data)
-    );
-  }
-
-  // Validate GST data before upload
-  validateGstData(data: any[]): Observable<ApiResponse<any>> {
-    const url = `${this.apiUrl}gstEntry/validate_bulk_data/`;
-    return from(axios.post(url, { entries: data }, { headers: this.getHeaders() })).pipe(
-      map(response => response.data)
-    );
-  }
-
-  // Get AMC suggestions for fuzzy matching
-  getAmcSuggestions(searchTerm: string): Observable<ApiResponse<any>> {
-    const params = new URLSearchParams({
-      search: searchTerm,
-      fuzzy: 'true'
-    });
-    const url = `${this.amc}suggestions/?${params.toString()}`;
-
-    return from(axios.get(url, { headers: this.getHeaders() })).pipe(
-      map(response => response.data)
-    );
-  }
 }

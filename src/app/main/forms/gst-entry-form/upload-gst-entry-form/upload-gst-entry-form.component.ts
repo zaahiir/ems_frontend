@@ -26,8 +26,9 @@ interface ExcelGstData {
   matchedAmcName?: string;
   duplicateCheck?: boolean;
   isDuplicate?: boolean;
-  gstRegistered: boolean; // true = GST Registered, false = Not GST Registered
-  errors: string[]; // Required property - always initialized as array
+  gstRegistered: boolean;
+  errors: string[];
+  matchScore?: number;
 }
 
 @Component({
@@ -187,14 +188,14 @@ export class UploadGstEntryFormComponent implements OnInit, OnDestroy {
         sgst: parseFloat(row[8]) || 0,
         totalInvoiceValue: parseFloat(row[9]) || 0,
         selected: true,
-        gstRegistered: (parseFloat(row[6]) > 0 || parseFloat(row[7]) > 0 || parseFloat(row[8]) > 0), // Auto-detect based on tax values
-        errors: [] // Always initialize as empty array
+        gstRegistered: (parseFloat(row[6]) > 0 || parseFloat(row[7]) > 0 || parseFloat(row[8]) > 0),
+        errors: []
       };
 
       // Validate required fields
       this.validateExcelRow(excelRow);
 
-      // Match AMC using fuzzy logic
+      // Match AMC using improved fuzzy logic
       await this.matchAmc(excelRow);
 
       this.excelData.push(excelRow);
@@ -292,7 +293,7 @@ export class UploadGstEntryFormComponent implements OnInit, OnDestroy {
     let bestMatch: amcMasterCommonInterface | null = null;
     let bestScore = 0;
 
-    // First, try exact match
+    // Step 1: Exact match
     for (const amc of this.amc) {
       const amcName = amc.amcName.toUpperCase().trim();
       if (amcName === invoicedTo) {
@@ -302,74 +303,159 @@ export class UploadGstEntryFormComponent implements OnInit, OnDestroy {
       }
     }
 
-    // If no exact match, try fuzzy matching with higher threshold
+    // Step 2: Enhanced fuzzy matching with keyword extraction
     if (!bestMatch) {
+      const invoicedToKeywords = this.extractKeywords(invoicedTo);
+
       for (const amc of this.amc) {
         const amcName = amc.amcName.toUpperCase().trim();
-        const score = this.calculateSimilarity(invoicedTo, amcName);
-        if (score > bestScore && score >= 0.8) { // 80% similarity threshold
+        const amcKeywords = this.extractKeywords(amcName);
+
+        // Calculate keyword matching score
+        const keywordScore = this.calculateKeywordScore(invoicedToKeywords, amcKeywords);
+
+        // Calculate similarity score
+        const similarityScore = this.calculateSimilarity(invoicedTo, amcName);
+
+        // Combine scores with weight towards keyword matching
+        const combinedScore = (keywordScore * 0.7) + (similarityScore * 0.3);
+
+        if (combinedScore > bestScore && combinedScore >= 0.6) {
           bestMatch = amc;
-          bestScore = score;
+          bestScore = combinedScore;
         }
       }
     }
 
-    // Try matching with first word if no good fuzzy match
-    if (!bestMatch || bestScore < 0.8) {
-      const firstWord = invoicedTo.split(' ')[0];
-      if (firstWord.length > 2) { // Only consider meaningful first words
-        for (const amc of this.amc) {
-          const amcName = amc.amcName.toUpperCase().trim();
-          const amcFirstWord = amcName.split(' ')[0];
-
-          if (amcFirstWord === firstWord && firstWord.length > 3) {
-            bestMatch = amc;
-            bestScore = 0.7;
-            break;
-          }
-
-          // Check if AMC name contains the first word
-          if (amcName.includes(firstWord) && firstWord.length > 3) {
-            const containsScore = 0.6;
-            if (containsScore > bestScore) {
-              bestMatch = amc;
-              bestScore = containsScore;
-            }
-          }
-        }
-      }
-    }
-
-    // Try partial matching with significant words
+    // Step 3: Partial word matching for common abbreviations
     if (!bestMatch || bestScore < 0.6) {
-      const words = invoicedTo.split(' ').filter(word => word.length > 3);
-      for (const amc of this.amc) {
-        const amcName = amc.amcName.toUpperCase().trim();
-        let matchCount = 0;
-
-        for (const word of words) {
-          if (amcName.includes(word)) {
-            matchCount++;
-          }
-        }
-
-        if (matchCount > 0 && words.length > 0) {
-          const partialScore = (matchCount / words.length) * 0.5;
-          if (partialScore > bestScore) {
-            bestMatch = amc;
-            bestScore = partialScore;
-          }
-        }
+      const partialMatch = this.findPartialMatch(invoicedTo, this.amc);
+      if (partialMatch) {
+        bestMatch = partialMatch.amc;
+        bestScore = partialMatch.score;
       }
     }
 
-    if (bestMatch && bestScore >= 0.5) {
-      // Fixed: Convert number to string
+    // Step 4: Acronym matching (DSP -> DSP, SBI -> SBI, etc.)
+    if (!bestMatch || bestScore < 0.5) {
+      const acronymMatch = this.findAcronymMatch(invoicedTo, this.amc);
+      if (acronymMatch) {
+        bestMatch = acronymMatch.amc;
+        bestScore = acronymMatch.score;
+      }
+    }
+
+    if (bestMatch && bestScore >= 0.4) {
       row.matchedAmcId = bestMatch.id.toString();
       row.matchedAmcName = bestMatch.amcName;
+      row.matchScore = bestScore;
     } else {
       row.errors.push(`AMC not matched for: "${row.invoicedTo}"`);
     }
+  }
+
+  private extractKeywords(text: string): string[] {
+    // Remove common words and extract meaningful keywords
+    const commonWords = ['MUTUAL', 'FUND', 'FUNDS', 'MANAGEMENT', 'LTD', 'LIMITED', 'COMPANY', 'PVT', 'PRIVATE', 'ASSET', 'INVESTMENT', 'INVESTMENTS'];
+
+    const words = text.split(/\s+/).filter(word => {
+      return word.length > 2 && !commonWords.includes(word.toUpperCase());
+    });
+
+    return words.map(word => word.toUpperCase());
+  }
+
+  private calculateKeywordScore(keywords1: string[], keywords2: string[]): number {
+    if (keywords1.length === 0 || keywords2.length === 0) return 0;
+
+    let matchCount = 0;
+    let totalScore = 0;
+
+    for (const keyword1 of keywords1) {
+      for (const keyword2 of keywords2) {
+        if (keyword1 === keyword2) {
+          matchCount++;
+          totalScore += 1;
+        } else if (keyword1.includes(keyword2) || keyword2.includes(keyword1)) {
+          matchCount++;
+          totalScore += 0.8;
+        } else {
+          const similarity = this.calculateSimilarity(keyword1, keyword2);
+          if (similarity > 0.8) {
+            matchCount++;
+            totalScore += similarity;
+          }
+        }
+      }
+    }
+
+    return totalScore / Math.max(keywords1.length, keywords2.length);
+  }
+
+  private findPartialMatch(invoicedTo: string, amcList: amcMasterCommonInterface[]): { amc: amcMasterCommonInterface, score: number } | null {
+    const mappings = [
+      { patterns: ['DSP', 'BLACKROCK'], target: 'DSP' },
+      { patterns: ['SBI', 'FUNDS'], target: 'SBI' },
+      { patterns: ['EDELWEISS', 'EDELWISE'], target: 'EDELWEISS' },
+      { patterns: ['ICICI', 'PRUDENTIAL'], target: 'ICICI' },
+      { patterns: ['HDFC', 'ASSET'], target: 'HDFC' },
+      { patterns: ['AXIS', 'MUTUAL'], target: 'AXIS' },
+      { patterns: ['KOTAK', 'MAHINDRA'], target: 'KOTAK' },
+      { patterns: ['RELIANCE', 'CAPITAL'], target: 'RELIANCE' },
+      { patterns: ['BIRLA', 'SUN', 'LIFE'], target: 'BIRLA' },
+      { patterns: ['FRANKLIN', 'TEMPLETON'], target: 'FRANKLIN' },
+      { patterns: ['INVESCO', 'OPPENHEIMER'], target: 'INVESCO' },
+      { patterns: ['NIPPON', 'INDIA'], target: 'NIPPON' },
+      { patterns: ['MIRAE', 'ASSET'], target: 'MIRAE' },
+      { patterns: ['TATA', 'MUTUAL'], target: 'TATA' },
+      { patterns: ['UTI', 'MUTUAL'], target: 'UTI' },
+      { patterns: ['HSBC', 'MUTUAL'], target: 'HSBC' },
+      { patterns: ['CANARA', 'ROBECO'], target: 'CANARA' },
+      { patterns: ['PRINCIPAL', 'MUTUAL'], target: 'PRINCIPAL' },
+      { patterns: ['SUNDARAM', 'MUTUAL'], target: 'SUNDARAM' },
+      { patterns: ['QUANTUM', 'MUTUAL'], target: 'QUANTUM' }
+    ];
+
+    for (const mapping of mappings) {
+      const hasAllPatterns = mapping.patterns.every(pattern =>
+        invoicedTo.includes(pattern)
+      );
+
+      if (hasAllPatterns) {
+        // Find AMC that contains the target keyword
+        for (const amc of amcList) {
+          if (amc.amcName.toUpperCase().includes(mapping.target)) {
+            return { amc, score: 0.8 };
+          }
+        }
+      }
+    }
+
+    return null;
+  }
+
+  private findAcronymMatch(invoicedTo: string, amcList: amcMasterCommonInterface[]): { amc: amcMasterCommonInterface, score: number } | null {
+    // Extract potential acronyms from the invoiced to
+    const acronyms = this.extractAcronyms(invoicedTo);
+
+    for (const acronym of acronyms) {
+      if (acronym.length >= 3) {
+        for (const amc of amcList) {
+          const amcUpper = amc.amcName.toUpperCase();
+          if (amcUpper.includes(acronym)) {
+            return { amc, score: 0.7 };
+          }
+        }
+      }
+    }
+
+    return null;
+  }
+
+  private extractAcronyms(text: string): string[] {
+    // Find words that are likely acronyms (3+ consecutive capitals)
+    const acronyms = text.match(/\b[A-Z]{3,}\b/g);
+    return acronyms || [];
   }
 
   private calculateSimilarity(str1: string, str2: string): number {
@@ -385,12 +471,10 @@ export class UploadGstEntryFormComponent implements OnInit, OnDestroy {
   }
 
   private levenshteinDistance(str1: string, str2: string): number {
-    // Create a 2D array with proper initialization
     const matrix: number[][] = Array(str2.length + 1)
       .fill(null)
       .map(() => Array(str1.length + 1).fill(0));
 
-    // Initialize first row and column
     for (let i = 0; i <= str2.length; i++) {
       matrix[i][0] = i;
     }
@@ -399,16 +483,15 @@ export class UploadGstEntryFormComponent implements OnInit, OnDestroy {
       matrix[0][j] = j;
     }
 
-    // Fill the matrix
     for (let i = 1; i <= str2.length; i++) {
       for (let j = 1; j <= str1.length; j++) {
         if (str2.charAt(i - 1) === str1.charAt(j - 1)) {
           matrix[i][j] = matrix[i - 1][j - 1];
         } else {
           matrix[i][j] = Math.min(
-            matrix[i - 1][j - 1] + 1, // substitution
-            matrix[i][j - 1] + 1,     // insertion
-            matrix[i - 1][j] + 1      // deletion
+            matrix[i - 1][j - 1] + 1,
+            matrix[i][j - 1] + 1,
+            matrix[i - 1][j] + 1
           );
         }
       }
@@ -438,7 +521,7 @@ export class UploadGstEntryFormComponent implements OnInit, OnDestroy {
           row.duplicateCheck = true;
 
           if (row.isDuplicate) {
-            row.selected = false; // Unselect duplicates by default
+            row.selected = false;
             row.errors.push('Duplicate entry found for this ARN, AMC, Invoice Number and Date');
           }
         } catch (error) {

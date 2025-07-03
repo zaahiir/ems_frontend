@@ -51,6 +51,7 @@ export class UploadGstEntryFormComponent implements OnInit, OnDestroy {
   arn: arnMasterCommonInterface[] = [];
   excelData: ExcelGstData[] = [];
   selectedArn: string = '';
+  selectedFile: File | null = null; // Store file separately
 
   private destroy$ = new Subject<void>();
 
@@ -111,9 +112,14 @@ export class UploadGstEntryFormComponent implements OnInit, OnDestroy {
           file.type !== 'application/vnd.ms-excel') {
         Swal.fire('Error', 'Please select a valid Excel file (.xlsx or .xls)', 'error');
         this.fileInput.nativeElement.value = '';
+        this.selectedFile = null;
+        this.uploadForm.patchValue({ excelFile: '' });
         return;
       }
-      this.uploadForm.patchValue({ excelFile: file });
+
+      // Store file separately and set form control to filename
+      this.selectedFile = file;
+      this.uploadForm.patchValue({ excelFile: file.name });
     }
   }
 
@@ -123,7 +129,7 @@ export class UploadGstEntryFormComponent implements OnInit, OnDestroy {
         await Swal.fire('Error', 'Please select an ARN first', 'error');
         return;
       }
-      if (!this.f['excelFile'].value) {
+      if (!this.selectedFile) {
         await Swal.fire('Error', 'Please select an Excel file', 'error');
         return;
       }
@@ -133,8 +139,11 @@ export class UploadGstEntryFormComponent implements OnInit, OnDestroy {
     this.selectedArn = this.f['selectedArn'].value;
 
     try {
-      const file = this.f['excelFile'].value;
-      const workbook = XLSX.read(await file.arrayBuffer(), { type: 'array' });
+      if (!this.selectedFile) {
+        throw new Error('No file selected');
+      }
+
+      const workbook = XLSX.read(await this.selectedFile.arrayBuffer(), { type: 'array' });
       const worksheet = workbook.Sheets[workbook.SheetNames[0]];
       const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
 
@@ -176,17 +185,22 @@ export class UploadGstEntryFormComponent implements OnInit, OnDestroy {
       // Skip empty rows
       if (!row[0] || !row[1]) continue;
 
+      // Helper function to round to 2 decimal places
+      const roundTo2Decimals = (value: number): number => {
+        return Math.round((value + Number.EPSILON) * 100) / 100;
+      };
+
       const excelRow: ExcelGstData = {
         sNo: parseInt(row[0]) || i - headerRowIndex,
         invoicedTo: row[1]?.toString().trim() || '',
         gstNo: row[2]?.toString().trim() || '',
         invoiceNo: row[3]?.toString().trim() || '',
         invoiceDate: this.parseExcelDate(row[4]),
-        taxableValue: parseFloat(row[5]) || 0,
-        igst: parseFloat(row[6]) || 0,
-        cgst: parseFloat(row[7]) || 0,
-        sgst: parseFloat(row[8]) || 0,
-        totalInvoiceValue: parseFloat(row[9]) || 0,
+        taxableValue: roundTo2Decimals(parseFloat(row[5]) || 0),
+        igst: roundTo2Decimals(parseFloat(row[6]) || 0),
+        cgst: roundTo2Decimals(parseFloat(row[7]) || 0),
+        sgst: roundTo2Decimals(parseFloat(row[8]) || 0),
+        totalInvoiceValue: roundTo2Decimals(parseFloat(row[9]) || 0),
         selected: true,
         gstRegistered: (parseFloat(row[6]) > 0 || parseFloat(row[7]) > 0 || parseFloat(row[8]) > 0),
         errors: []
@@ -598,6 +612,11 @@ export class UploadGstEntryFormComponent implements OnInit, OnDestroy {
     let errorCount = 0;
     const errors: string[] = [];
 
+    // Helper function to round to 2 decimal places
+    const roundTo2Decimals = (value: number): number => {
+      return Math.round((value + Number.EPSILON) * 100) / 100;
+    };
+
     for (const row of selectedRows) {
       try {
         const gstData = {
@@ -605,12 +624,12 @@ export class UploadGstEntryFormComponent implements OnInit, OnDestroy {
           gstInvoiceNumber: row.invoiceNo,
           gstAmcName: row.matchedAmcId,
           gstArnNumber: this.selectedArn,
-          gstRegistered: row.gstRegistered, // Use individual record's GST registration status
-          gstTotalValue: row.totalInvoiceValue,
-          gstTaxableValue: row.taxableValue,
-          gstIGst: row.igst,
-          gstSGst: row.sgst,
-          gstCGst: row.cgst,
+          gstRegistered: row.gstRegistered,
+          gstTotalValue: roundTo2Decimals(row.totalInvoiceValue),
+          gstTaxableValue: roundTo2Decimals(row.taxableValue),
+          gstIGst: roundTo2Decimals(row.igst),
+          gstSGst: roundTo2Decimals(row.sgst),
+          gstCGst: roundTo2Decimals(row.cgst),
           hideStatus: 0
         };
 
@@ -683,6 +702,7 @@ export class UploadGstEntryFormComponent implements OnInit, OnDestroy {
     this.processingProgress = 0;
     this.processedRecords = 0;
     this.totalRecords = 0;
+    this.selectedFile = null; // Reset selected file
     if (this.fileInput) {
       this.fileInput.nativeElement.value = '';
     }

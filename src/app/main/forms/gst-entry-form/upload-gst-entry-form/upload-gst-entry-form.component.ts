@@ -60,6 +60,15 @@ export class UploadGstEntryFormComponent implements OnInit, OnDestroy {
   totalRecords = 0;
   processedRecords = 0;
 
+  // Enhanced AMC matching patterns
+  private commonStopWords = [
+    'MUTUAL', 'FUND', 'FUNDS', 'MANAGEMENT', 'LTD', 'LIMITED', 'COMPANY', 'PVT', 'PRIVATE',
+    'ASSET', 'INVESTMENT', 'INVESTMENTS', 'ADVISORS', 'ADVISORS', 'MANAGERS', 'MANAGER',
+    'TRUSTEE', 'TRUSTEES', 'SERVICES', 'INDIA', 'INDIAN', 'GLOBAL', 'INTERNATIONAL',
+    'SECURITIES', 'CAPITAL', 'FINANCE', 'FINANCIAL', 'GROUP', 'CORPORATION', 'CORP',
+    'THE', 'AND', 'OF', 'FOR', 'WITH', 'AMC'
+  ];
+
   constructor(
     private fb: FormBuilder,
     private router: Router,
@@ -91,7 +100,9 @@ export class UploadGstEntryFormComponent implements OnInit, OnDestroy {
     try {
       const response = await this.gstEntryFormsService.getAmc();
       this.amc = response.data;
+      console.log('Loaded AMC data:', this.amc.length, 'records');
     } catch (error) {
+      console.error('Error loading AMC data:', error);
       await Swal.fire('Error', 'Failed to load AMC data', 'error');
     }
   }
@@ -100,7 +111,9 @@ export class UploadGstEntryFormComponent implements OnInit, OnDestroy {
     try {
       const response = await this.gstEntryFormsService.getArn();
       this.arn = response.data;
+      console.log('Loaded ARN data:', this.arn.length, 'records');
     } catch (error) {
+      console.error('Error loading ARN data:', error);
       await Swal.fire('Error', 'Failed to load ARN data', 'error');
     }
   }
@@ -212,10 +225,10 @@ export class UploadGstEntryFormComponent implements OnInit, OnDestroy {
         errors: []
       };
 
-      // Validate required fields without calculation validation
+      // Validate required fields
       this.validateExcelRow(excelRow);
 
-      // Match AMC using improved fuzzy logic
+      // Match AMC using enhanced algorithm
       await this.matchAmc(excelRow);
 
       this.excelData.push(excelRow);
@@ -226,13 +239,13 @@ export class UploadGstEntryFormComponent implements OnInit, OnDestroy {
   }
 
   private validateExcelRow(row: ExcelGstData): void {
-    // Basic validation without calculation checks
+    // Basic validation
     if (!row.invoicedTo) row.errors.push('Missing Invoiced To');
     if (!row.invoiceNo) row.errors.push('Missing Invoice Number');
     if (!row.invoiceDate) row.errors.push('Invalid Invoice Date');
     if (row.totalInvoiceValue <= 0) row.errors.push('Invalid Total Invoice Value');
 
-    // Optional: Check for negative values (but don't validate calculations)
+    // Check for negative values
     if (row.taxableValue < 0) row.errors.push('Taxable Value cannot be negative');
     if (row.igst < 0) row.errors.push('IGST cannot be negative');
     if (row.cgst < 0) row.errors.push('CGST cannot be negative');
@@ -245,11 +258,9 @@ export class UploadGstEntryFormComponent implements OnInit, OnDestroy {
     try {
       // Handle Excel date serial number
       if (typeof dateValue === 'number') {
-        // Excel dates start from 1900-01-01, but Excel treats 1900 as a leap year
         const excelEpoch = new Date(1900, 0, 1);
         const date = new Date(excelEpoch.getTime() + (dateValue - 2) * 24 * 60 * 60 * 1000);
 
-        // Ensure the year is reasonable (between 2000 and 2100)
         if (date.getFullYear() < 2000) {
           date.setFullYear(date.getFullYear() + 100);
         }
@@ -259,22 +270,16 @@ export class UploadGstEntryFormComponent implements OnInit, OnDestroy {
 
       // Handle string dates
       if (typeof dateValue === 'string') {
-        // Clean the date string
         const cleanDate = dateValue.trim().replace(/\s+/g, ' ');
-
         let parsedDate: Date | null = null;
 
-        // Try parsing with different approaches
         if (/^\d{1,2}-\w{3}-\d{2,4}$/.test(cleanDate)) {
-          // Handle format like "30-Apr-25"
           parsedDate = new Date(cleanDate);
         } else {
-          // Try standard Date parsing
           parsedDate = new Date(cleanDate);
         }
 
         if (parsedDate && !isNaN(parsedDate.getTime())) {
-          // Handle 2-digit years by assuming 20xx
           if (parsedDate.getFullYear() < 100) {
             parsedDate.setFullYear(parsedDate.getFullYear() + 2000);
           } else if (parsedDate.getFullYear() < 2000) {
@@ -299,6 +304,8 @@ export class UploadGstEntryFormComponent implements OnInit, OnDestroy {
     }
 
     const invoicedTo = row.invoicedTo.toUpperCase().trim();
+    console.log(`Matching AMC for: "${invoicedTo}"`);
+
     let bestMatch: amcMasterCommonInterface | null = null;
     let bestScore = 0;
 
@@ -308,136 +315,118 @@ export class UploadGstEntryFormComponent implements OnInit, OnDestroy {
       if (amcName === invoicedTo) {
         bestMatch = amc;
         bestScore = 1;
+        console.log(`Exact match found: ${amcName}`);
         break;
       }
     }
 
-    // Step 2: Enhanced fuzzy matching with keyword extraction
+    // Step 2: Enhanced fuzzy matching
     if (!bestMatch) {
-      const invoicedToKeywords = this.extractKeywords(invoicedTo);
-
-      for (const amc of this.amc) {
-        const amcName = amc.amcName.toUpperCase().trim();
-        const amcKeywords = this.extractKeywords(amcName);
-
-        // Calculate keyword matching score
-        const keywordScore = this.calculateKeywordScore(invoicedToKeywords, amcKeywords);
-
-        // Calculate similarity score
-        const similarityScore = this.calculateSimilarity(invoicedTo, amcName);
-
-        // Combine scores with weight towards keyword matching
-        const combinedScore = (keywordScore * 0.7) + (similarityScore * 0.3);
-
-        if (combinedScore > bestScore && combinedScore >= 0.6) {
-          bestMatch = amc;
-          bestScore = combinedScore;
-        }
+      const results = this.performFuzzyMatching(invoicedTo, this.amc);
+      if (results.length > 0) {
+        bestMatch = results[0].amc;
+        bestScore = results[0].score;
+        console.log(`Fuzzy match found: ${bestMatch.amcName} (Score: ${bestScore})`);
       }
     }
 
-    // Step 3: Partial word matching for common abbreviations
+    // Step 3: Keyword-based matching
+    if (!bestMatch || bestScore < 0.7) {
+      const keywordMatch = this.findKeywordMatch(invoicedTo, this.amc);
+      if (keywordMatch && keywordMatch.score > bestScore) {
+        bestMatch = keywordMatch.amc;
+        bestScore = keywordMatch.score;
+        console.log(`Keyword match found: ${bestMatch.amcName} (Score: ${bestScore})`);
+      }
+    }
+
+    // Step 4: Brand/Company name matching
     if (!bestMatch || bestScore < 0.6) {
-      const partialMatch = this.findPartialMatch(invoicedTo, this.amc);
-      if (partialMatch) {
-        bestMatch = partialMatch.amc;
-        bestScore = partialMatch.score;
+      const brandMatch = this.findBrandMatch(invoicedTo, this.amc);
+      if (brandMatch && brandMatch.score > bestScore) {
+        bestMatch = brandMatch.amc;
+        bestScore = brandMatch.score;
+        console.log(`Brand match found: ${bestMatch.amcName} (Score: ${bestScore})`);
       }
     }
 
-    // Step 4: Acronym matching (DSP -> DSP, SBI -> SBI, etc.)
+    // Step 5: Acronym matching
     if (!bestMatch || bestScore < 0.5) {
       const acronymMatch = this.findAcronymMatch(invoicedTo, this.amc);
-      if (acronymMatch) {
+      if (acronymMatch && acronymMatch.score > bestScore) {
         bestMatch = acronymMatch.amc;
         bestScore = acronymMatch.score;
+        console.log(`Acronym match found: ${bestMatch.amcName} (Score: ${bestScore})`);
       }
     }
 
+    // Assign results
     if (bestMatch && bestScore >= 0.4) {
       row.matchedAmcId = bestMatch.id.toString();
       row.matchedAmcName = bestMatch.amcName;
       row.matchScore = bestScore;
+      console.log(`Final match: ${bestMatch.amcName} (Score: ${bestScore})`);
     } else {
       row.errors.push(`AMC not matched for: "${row.invoicedTo}"`);
+      console.log(`No match found for: "${row.invoicedTo}"`);
     }
   }
 
-  private extractKeywords(text: string): string[] {
-    // Remove common words and extract meaningful keywords
-    const commonWords = ['MUTUAL', 'FUND', 'FUNDS', 'MANAGEMENT', 'LTD', 'LIMITED', 'COMPANY', 'PVT', 'PRIVATE', 'ASSET', 'INVESTMENT', 'INVESTMENTS'];
+  private performFuzzyMatching(invoicedTo: string, amcList: amcMasterCommonInterface[]): { amc: amcMasterCommonInterface, score: number }[] {
+    const results: { amc: amcMasterCommonInterface, score: number }[] = [];
 
-    const words = text.split(/\s+/).filter(word => {
-      return word.length > 2 && !commonWords.includes(word.toUpperCase());
-    });
+    for (const amc of amcList) {
+      const amcName = amc.amcName.toUpperCase().trim();
 
-    return words.map(word => word.toUpperCase());
-  }
+      // Calculate multiple similarity scores
+      const levenshteinScore = this.calculateSimilarity(invoicedTo, amcName);
+      const jaccardScore = this.calculateJaccardSimilarity(invoicedTo, amcName);
+      const containmentScore = this.calculateContainmentScore(invoicedTo, amcName);
+      const tokenScore = this.calculateTokenSimilarity(invoicedTo, amcName);
 
-  private calculateKeywordScore(keywords1: string[], keywords2: string[]): number {
-    if (keywords1.length === 0 || keywords2.length === 0) return 0;
+      // Weighted combination of scores
+      const combinedScore = (levenshteinScore * 0.3) + (jaccardScore * 0.25) +
+                           (containmentScore * 0.25) + (tokenScore * 0.2);
 
-    let matchCount = 0;
-    let totalScore = 0;
-
-    for (const keyword1 of keywords1) {
-      for (const keyword2 of keywords2) {
-        if (keyword1 === keyword2) {
-          matchCount++;
-          totalScore += 1;
-        } else if (keyword1.includes(keyword2) || keyword2.includes(keyword1)) {
-          matchCount++;
-          totalScore += 0.8;
-        } else {
-          const similarity = this.calculateSimilarity(keyword1, keyword2);
-          if (similarity > 0.8) {
-            matchCount++;
-            totalScore += similarity;
-          }
-        }
+      if (combinedScore > 0.3) {
+        results.push({ amc, score: combinedScore });
       }
     }
 
-    return totalScore / Math.max(keywords1.length, keywords2.length);
+    return results.sort((a, b) => b.score - a.score);
   }
 
-  private findPartialMatch(invoicedTo: string, amcList: amcMasterCommonInterface[]): { amc: amcMasterCommonInterface, score: number } | null {
-    const mappings = [
-      { patterns: ['ADITYA', 'BIRLA'], target: 'ADITYA BIRLA' },
-      { patterns: ['DSP', 'BLACKROCK'], target: 'DSP' },
-      { patterns: ['SBI', 'FUNDS'], target: 'SBI' },
-      { patterns: ['EDELWEISS', 'EDELWISE'], target: 'EDELWEISS' },
-      { patterns: ['ICICI', 'PRUDENTIAL'], target: 'ICICI' },
-      { patterns: ['HDFC', 'ASSET'], target: 'HDFC' },
-      { patterns: ['AXIS', 'MUTUAL'], target: 'AXIS' },
-      { patterns: ['KOTAK', 'MAHINDRA'], target: 'KOTAK' },
-      { patterns: ['RELIANCE', 'CAPITAL'], target: 'RELIANCE' },
-      { patterns: ['BIRLA', 'SUN', 'LIFE'], target: 'BIRLA' },
-      { patterns: ['FRANKLIN', 'TEMPLETON'], target: 'FRANKLIN' },
-      { patterns: ['INVESCO', 'OPPENHEIMER'], target: 'INVESCO' },
-      { patterns: ['NIPPON', 'INDIA'], target: 'NIPPON' },
-      { patterns: ['MIRAE', 'ASSET'], target: 'MIRAE' },
-      { patterns: ['TATA', 'MUTUAL'], target: 'TATA' },
-      { patterns: ['UTI', 'MUTUAL'], target: 'UTI' },
-      { patterns: ['HSBC', 'MUTUAL'], target: 'HSBC' },
-      { patterns: ['CANARA', 'ROBECO'], target: 'CANARA' },
-      { patterns: ['PRINCIPAL', 'MUTUAL'], target: 'PRINCIPAL' },
-      { patterns: ['SUNDARAM', 'MUTUAL'], target: 'SUNDARAM' },
-      { patterns: ['QUANTUM', 'MUTUAL'], target: 'QUANTUM' },
-      { patterns: ['BANDHAN', 'MUTUAL'], target: 'BANDHAN' }
-    ];
+  private findKeywordMatch(invoicedTo: string, amcList: amcMasterCommonInterface[]): { amc: amcMasterCommonInterface, score: number } | null {
+    const invoiceKeywords = this.extractMeaningfulKeywords(invoicedTo);
+    let bestMatch: { amc: amcMasterCommonInterface, score: number } | null = null;
+    let bestScore = 0;
 
-    for (const mapping of mappings) {
-      const hasAllPatterns = mapping.patterns.every(pattern =>
-        invoicedTo.includes(pattern)
-      );
+    for (const amc of amcList) {
+      const amcKeywords = this.extractMeaningfulKeywords(amc.amcName);
+      const keywordScore = this.calculateKeywordMatchScore(invoiceKeywords, amcKeywords);
 
-      if (hasAllPatterns) {
-        // Find AMC that contains the target keyword
+      if (keywordScore > bestScore && keywordScore > 0.5) {
+        bestScore = keywordScore;
+        bestMatch = { amc, score: keywordScore };
+      }
+    }
+
+    return bestMatch;
+  }
+
+  private findBrandMatch(invoicedTo: string, amcList: amcMasterCommonInterface[]): { amc: amcMasterCommonInterface, score: number } | null {
+    // Extract potential brand names from invoiced to
+    const brands = this.extractBrandNames(invoicedTo);
+
+    for (const brand of brands) {
+      if (brand.length >= 3) {
         for (const amc of amcList) {
           const amcUpper = amc.amcName.toUpperCase();
-          if (amcUpper.includes(mapping.target)) {
-            return { amc, score: 0.8 };
+          if (amcUpper.includes(brand)) {
+            // Calculate how well the brand matches
+            const brandScore = brand.length / Math.max(invoicedTo.length, amcUpper.length);
+            const adjustedScore = Math.min(0.8, brandScore + 0.3);
+            return { amc, score: adjustedScore };
           }
         }
       }
@@ -447,15 +436,26 @@ export class UploadGstEntryFormComponent implements OnInit, OnDestroy {
   }
 
   private findAcronymMatch(invoicedTo: string, amcList: amcMasterCommonInterface[]): { amc: amcMasterCommonInterface, score: number } | null {
-    // Extract potential acronyms from the invoiced to
     const acronyms = this.extractAcronyms(invoicedTo);
 
     for (const acronym of acronyms) {
-      if (acronym.length >= 3) {
+      if (acronym.length >= 2) {
         for (const amc of amcList) {
           const amcUpper = amc.amcName.toUpperCase();
+
+          // Check if acronym matches AMC name
           if (amcUpper.includes(acronym)) {
             return { amc, score: 0.7 };
+          }
+
+          // Check if acronym matches first letters of AMC name words
+          const amcWords = amcUpper.split(/\s+/).filter(word =>
+            !this.commonStopWords.includes(word) && word.length > 1
+          );
+
+          const firstLetters = amcWords.map(word => word.charAt(0)).join('');
+          if (firstLetters.includes(acronym) || acronym.includes(firstLetters)) {
+            return { amc, score: 0.6 };
           }
         }
       }
@@ -464,10 +464,111 @@ export class UploadGstEntryFormComponent implements OnInit, OnDestroy {
     return null;
   }
 
+  private extractMeaningfulKeywords(text: string): string[] {
+    const words = text.split(/\s+/)
+      .map(word => word.replace(/[^A-Z0-9]/g, ''))
+      .filter(word => word.length > 2 && !this.commonStopWords.includes(word));
+
+    return [...new Set(words)]; // Remove duplicates
+  }
+
+  private extractBrandNames(text: string): string[] {
+    // Extract words that are likely brand names (longer meaningful words)
+    const words = text.split(/\s+/)
+      .map(word => word.replace(/[^A-Z]/g, ''))
+      .filter(word => word.length >= 3 && !this.commonStopWords.includes(word));
+
+    return [...new Set(words)];
+  }
+
   private extractAcronyms(text: string): string[] {
-    // Find words that are likely acronyms (3+ consecutive capitals)
-    const acronyms = text.match(/\b[A-Z]{3,}\b/g);
-    return acronyms || [];
+    const acronyms = text.match(/\b[A-Z]{2,}\b/g) || [];
+    return [...new Set(acronyms)];
+  }
+
+  private calculateKeywordMatchScore(keywords1: string[], keywords2: string[]): number {
+    if (keywords1.length === 0 || keywords2.length === 0) return 0;
+
+    let totalScore = 0;
+    let matchCount = 0;
+
+    for (const keyword1 of keywords1) {
+      let bestKeywordScore = 0;
+
+      for (const keyword2 of keywords2) {
+        if (keyword1 === keyword2) {
+          bestKeywordScore = 1;
+          break;
+        } else if (keyword1.includes(keyword2) || keyword2.includes(keyword1)) {
+          bestKeywordScore = Math.max(bestKeywordScore, 0.8);
+        } else {
+          const similarity = this.calculateSimilarity(keyword1, keyword2);
+          if (similarity > 0.7) {
+            bestKeywordScore = Math.max(bestKeywordScore, similarity);
+          }
+        }
+      }
+
+      if (bestKeywordScore > 0) {
+        totalScore += bestKeywordScore;
+        matchCount++;
+      }
+    }
+
+    return matchCount > 0 ? totalScore / Math.max(keywords1.length, keywords2.length) : 0;
+  }
+
+  private calculateJaccardSimilarity(str1: string, str2: string): number {
+    const set1 = new Set(str1.split(''));
+    const set2 = new Set(str2.split(''));
+
+    const intersection = new Set([...set1].filter(x => set2.has(x)));
+    const union = new Set([...set1, ...set2]);
+
+    return intersection.size / union.size;
+  }
+
+  private calculateContainmentScore(invoicedTo: string, amcName: string): number {
+    // Check how much of the shorter string is contained in the longer string
+    const shorter = invoicedTo.length < amcName.length ? invoicedTo : amcName;
+    const longer = invoicedTo.length < amcName.length ? amcName : invoicedTo;
+
+    let containmentScore = 0;
+    const words = shorter.split(/\s+/).filter(word => word.length > 2);
+
+    for (const word of words) {
+      if (longer.includes(word)) {
+        containmentScore += word.length / shorter.length;
+      }
+    }
+
+    return Math.min(1, containmentScore);
+  }
+
+  private calculateTokenSimilarity(str1: string, str2: string): number {
+    const tokens1 = str1.split(/\s+/).filter(token => token.length > 1);
+    const tokens2 = str2.split(/\s+/).filter(token => token.length > 1);
+
+    if (tokens1.length === 0 || tokens2.length === 0) return 0;
+
+    let matchCount = 0;
+    let totalScore = 0;
+
+    for (const token1 of tokens1) {
+      let bestTokenScore = 0;
+
+      for (const token2 of tokens2) {
+        const similarity = this.calculateSimilarity(token1, token2);
+        bestTokenScore = Math.max(bestTokenScore, similarity);
+      }
+
+      if (bestTokenScore > 0.6) {
+        totalScore += bestTokenScore;
+        matchCount++;
+      }
+    }
+
+    return matchCount > 0 ? totalScore / Math.max(tokens1.length, tokens2.length) : 0;
   }
 
   private calculateSimilarity(str1: string, str2: string): number {
@@ -565,6 +666,14 @@ export class UploadGstEntryFormComponent implements OnInit, OnDestroy {
     return this.excelData.filter(row => row.isDuplicate).length;
   }
 
+  getMatchedCount(): number {
+    return this.excelData.filter(row => row.matchedAmcId).length;
+  }
+
+  getUnmatchedCount(): number {
+    return this.excelData.filter(row => !row.matchedAmcId).length;
+  }
+
   hasErrors(row: ExcelGstData): boolean {
     return row.errors.length > 0;
   }
@@ -596,6 +705,31 @@ export class UploadGstEntryFormComponent implements OnInit, OnDestroy {
     this.processing = true;
     this.totalRecords = selectedRows.length;
     this.processedRecords = 0;
+
+    // Show processing SweetAlert
+    Swal.fire({
+      title: 'Processing...',
+      html: `
+        <div>
+          <p>Saving GST entries...</p>
+          <div class="progress" style="height: 20px; margin: 10px 0;">
+            <div class="progress-bar progress-bar-striped progress-bar-animated"
+                role="progressbar"
+                style="width: 0%; background-color: #007bff;"
+                id="save-progress-bar">
+              <span id="save-progress-text">0%</span>
+            </div>
+          </div>
+          <p><span id="save-status">0 of ${selectedRows.length} entries processed</span></p>
+        </div>
+      `,
+      allowOutsideClick: false,
+      allowEscapeKey: false,
+      showConfirmButton: false,
+      didOpen: () => {
+        Swal.showLoading();
+      }
+    });
 
     let successCount = 0;
     let errorCount = 0;
@@ -644,10 +778,25 @@ export class UploadGstEntryFormComponent implements OnInit, OnDestroy {
 
       this.processedRecords++;
       this.processingProgress = (this.processedRecords / this.totalRecords) * 100;
+
+      // Update progress in SweetAlert
+      const progressBar = document.getElementById('save-progress-bar');
+      const progressText = document.getElementById('save-progress-text');
+      const statusText = document.getElementById('save-status');
+
+      if (progressBar && progressText && statusText) {
+        const percentage = Math.round(this.processingProgress);
+        progressBar.style.width = `${percentage}%`;
+        progressText.textContent = `${percentage}%`;
+        statusText.textContent = `${this.processedRecords} of ${this.totalRecords} entries processed`;
+      }
     }
 
     this.processing = false;
     this.loading = false;
+
+    // Close processing SweetAlert
+    Swal.close();
 
     // Show results
     if (successCount > 0 && errorCount === 0) {

@@ -126,12 +126,20 @@ export class UploadGstEntryFormComponent implements OnInit, OnDestroy {
         Swal.fire('Error', 'Please select a valid Excel file (.xlsx or .xls)', 'error');
         this.fileInput.nativeElement.value = '';
         this.selectedFile = null;
-        this.uploadForm.patchValue({ excelFile: '' });
+        // Mark the form control as invalid
+        this.uploadForm.get('excelFile')?.setErrors({ required: true });
+        this.uploadForm.get('excelFile')?.markAsTouched();
         return;
       }
 
       this.selectedFile = file;
-      this.uploadForm.patchValue({ excelFile: file.name });
+      // Set a dummy value to make the form control valid
+      this.uploadForm.get('excelFile')?.setValue('file-selected');
+      this.uploadForm.get('excelFile')?.setErrors(null);
+    } else {
+      this.selectedFile = null;
+      this.uploadForm.get('excelFile')?.setErrors({ required: true });
+      this.uploadForm.get('excelFile')?.markAsTouched();
     }
   }
 

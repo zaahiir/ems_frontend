@@ -1,17 +1,17 @@
 import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
-import { NgStyle, CommonModule } from '@angular/common';
+import { NgStyle, NgClass, NgForOf, NgIf, CommonModule } from '@angular/common';
 import { RouterLink, ActivatedRoute, Router } from '@angular/router';
 import { ReactiveFormsModule, FormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { RowComponent, ColComponent, TextColorDirective, CardComponent, CardHeaderComponent, CardBodyComponent, FormFloatingDirective, FormDirective, FormLabelDirective, FormControlDirective, FormFeedbackComponent, InputGroupComponent, InputGroupTextDirective, FormSelectDirective, FormCheckComponent, FormCheckInputDirective, FormCheckLabelDirective, ButtonDirective, ListGroupDirective, ListGroupItemDirective } from '@coreui/angular';
 import { GstEntryFormsService } from '../../../common-service/gst-entry-forms/gst-entry-forms.service'
-import { amcMasterCommonInterface, gstCommonInterface } from '../../../interfaces/interfaces'
+import { amcMasterCommonInterface, arnMasterCommonInterface, gstCommonInterface } from '../../../interfaces/interfaces'
 import Swal from 'sweetalert2';
 import { Subject, debounceTime, takeUntil, lastValueFrom } from 'rxjs';
 
 @Component({
   selector: 'app-update-gst-entry-form',
   standalone: true,
-  imports: [CommonModule, RouterLink, RowComponent, ColComponent, TextColorDirective, CardComponent, CardHeaderComponent, FormFloatingDirective, CardBodyComponent, ReactiveFormsModule, FormsModule, FormDirective, FormLabelDirective, FormControlDirective, FormFeedbackComponent, InputGroupComponent, InputGroupTextDirective, FormSelectDirective, FormCheckComponent, FormCheckInputDirective, FormCheckLabelDirective, ButtonDirective, ListGroupDirective, ListGroupItemDirective, NgStyle],
+  imports: [NgIf, CommonModule, NgClass, NgForOf, RouterLink, RowComponent, ColComponent, TextColorDirective, CardComponent, CardHeaderComponent, FormFloatingDirective, CardBodyComponent, ReactiveFormsModule, FormsModule, FormDirective, FormLabelDirective, FormControlDirective, FormFeedbackComponent, InputGroupComponent, InputGroupTextDirective, FormSelectDirective, FormCheckComponent, FormCheckInputDirective, FormCheckLabelDirective, ButtonDirective, ListGroupDirective, ListGroupItemDirective, NgStyle],
   templateUrl: './update-gst-entry-form.component.html',
   styleUrl: './update-gst-entry-form.component.scss'
 })
@@ -22,7 +22,9 @@ export class UpdateGstEntryFormComponent implements OnInit, OnDestroy {
   loading: boolean = false;
   submitted: boolean = false;
   gstId: string = "0";
-  amcs: amcMasterCommonInterface[] = [];
+
+  amc: amcMasterCommonInterface[] = [];
+  arn: arnMasterCommonInterface[] = [];
 
   private destroy$ = new Subject<void>();
   private calculateGst$ = new Subject<void>();
@@ -33,7 +35,7 @@ export class UpdateGstEntryFormComponent implements OnInit, OnDestroy {
     private route: ActivatedRoute,
     private gstEntryFormsService: GstEntryFormsService,
     private cdr: ChangeDetectorRef
-  ) { 
+  ) {
     this.initForm();
   }
 
@@ -42,6 +44,8 @@ export class UpdateGstEntryFormComponent implements OnInit, OnDestroy {
       gstInvoiceDate: ['', Validators.required],
       gstInvoiceNumber: ['', Validators.required],
       gstAmcName: ['', Validators.required],
+      gstArnNumber: ['', Validators.required],
+      gstRegistered: [true], // Default to GST registered
       gstTotalValue: ['', [Validators.required, Validators.min(0)]],
       gstTaxableValue: [{ value: '', disabled: true }],
       gstIGst: [{ value: '', disabled: true }],
@@ -52,8 +56,9 @@ export class UpdateGstEntryFormComponent implements OnInit, OnDestroy {
 
   async ngOnInit(): Promise<void> {
     try {
-      await this.loadAmcs();
-      const params = await new Promise<{id?: string}>(resolve => 
+      await this.loadAumData();
+      await this.loadArnData();
+      const params = await new Promise<{id?: string}>(resolve =>
         this.route.params.subscribe(params => resolve(params))
       );
       this.gstId = params.id || '0';
@@ -73,14 +78,25 @@ export class UpdateGstEntryFormComponent implements OnInit, OnDestroy {
 
   get f() { return this.gstUpdateForm.controls; }
 
-  async loadAmcs(): Promise<void> {
+  private async loadAumData(): Promise<void> {
     try {
       const response = await this.gstEntryFormsService.getAmc();
-      this.amcs = response.data;
+      this.amc = response.data;
       this.cdr.detectChanges();
     } catch (error) {
       console.error('Error loading AMCs:', error);
       await Swal.fire('Error', 'Failed to load AMC data', 'error');
+    }
+  }
+
+  private async loadArnData(): Promise<void> {
+    try {
+      const response = await this.gstEntryFormsService.getArn();
+      this.arn = response.data;
+      this.cdr.detectChanges();
+    } catch (error) {
+      console.error('Error loading ARNs:', error);
+      await Swal.fire('Error', 'Failed to load ARN data', 'error');
     }
   }
 
@@ -89,12 +105,15 @@ export class UpdateGstEntryFormComponent implements OnInit, OnDestroy {
       const response = await this.gstEntryFormsService.getGstById(this.gstId.toString()).toPromise();
       if (response && response.code === 1 && response.data) {
         const gstData = response.data;
-        const amcId = this.amcs.find(amc => amc.amcName === gstData.gstAmcName)?.id;
-        
+        const amcId = this.amc.find(amc => amc.amcName === gstData.gstAmcName)?.id;
+        const arnId = this.arn.find(arn => arn.arnNumber === gstData.gstArnNumber)?.id;
+
         this.gstUpdateForm.patchValue({
           gstInvoiceDate: gstData.gstInvoiceDate,
           gstInvoiceNumber: gstData.gstInvoiceNumber,
           gstAmcName: amcId,
+          gstArnNumber: arnId,
+          gstRegistered: gstData.gstRegistered !== undefined ? gstData.gstRegistered : true,
           gstTotalValue: gstData.gstTotalValue,
           gstTaxableValue: gstData.gstTaxableValue,
           gstIGst: gstData.gstIGst,
@@ -117,6 +136,11 @@ export class UpdateGstEntryFormComponent implements OnInit, OnDestroy {
     this.gstUpdateForm.get('gstTotalValue')?.valueChanges
       .pipe(takeUntil(this.destroy$))
       .subscribe(() => this.calculateGst$.next());
+
+    // Listen to GST registration status changes
+    this.gstUpdateForm.get('gstRegistered')?.valueChanges
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(() => this.calculateGst$.next());
   }
 
   private setupGstCalculation(): void {
@@ -131,25 +155,40 @@ export class UpdateGstEntryFormComponent implements OnInit, OnDestroy {
   private calculateGst(): void {
     const selectedAmcId = this.f['gstAmcName'].value;
     const totalValue = parseFloat(this.f['gstTotalValue'].value);
+    const isGstRegistered = this.f['gstRegistered'].value;
 
     if (selectedAmcId && !isNaN(totalValue) && totalValue > 0) {
-      const selectedAmc = this.amcs.find(amc => amc.id == selectedAmcId);
+      const selectedAmc = this.amc.find(amc => amc.id == selectedAmcId);
 
       if (selectedAmc) {
-        const isIGst = selectedAmc.amcGstType === 'IGST';
-        const gstRate = 0.18;
+        if (isGstRegistered) {
+          // GST Registered - Calculate GST
+          const isIGst = selectedAmc.amcGstType === 'IGST';
+          const gstRate = 0.18;
 
-        const taxableValue = totalValue / (1 + gstRate);
-        const gstValue = totalValue - taxableValue;
+          const taxableValue = totalValue / (1 + gstRate);
+          const gstValue = totalValue - taxableValue;
 
-        const updatedValues = {
-          gstTaxableValue: taxableValue.toFixed(2),
-          gstIGst: isIGst ? gstValue.toFixed(2) : '0.00',
-          gstSGst: isIGst ? '0.00' : (gstValue / 2).toFixed(2),
-          gstCGst: isIGst ? '0.00' : (gstValue / 2).toFixed(2)
-        };
+          const updatedValues = {
+            gstTaxableValue: taxableValue.toFixed(2),
+            gstIGst: isIGst ? gstValue.toFixed(2) : '0.00',
+            gstSGst: isIGst ? '0.00' : (gstValue / 2).toFixed(2),
+            gstCGst: isIGst ? '0.00' : (gstValue / 2).toFixed(2)
+          };
 
-        this.gstUpdateForm.patchValue(updatedValues, { emitEvent: false });
+          this.gstUpdateForm.patchValue(updatedValues, { emitEvent: false });
+        } else {
+          // Not GST Registered - Total value equals taxable value, no GST
+          const updatedValues = {
+            gstTaxableValue: totalValue.toFixed(2),
+            gstIGst: '0.00',
+            gstSGst: '0.00',
+            gstCGst: '0.00'
+          };
+
+          this.gstUpdateForm.patchValue(updatedValues, { emitEvent: false });
+        }
+
         this.gstUpdateForm.updateValueAndValidity();
         this.cdr.detectChanges();
       }
@@ -170,7 +209,7 @@ export class UpdateGstEntryFormComponent implements OnInit, OnDestroy {
   async onSubmit(): Promise<void> {
     this.customStylesValidated = true;
     this.submitted = true;
-  
+
     if (this.gstUpdateForm.invalid) {
       const invalidFields = Object.keys(this.gstUpdateForm.controls)
         .filter(key => this.gstUpdateForm.get(key)?.invalid)
@@ -179,11 +218,12 @@ export class UpdateGstEntryFormComponent implements OnInit, OnDestroy {
             case 'gstInvoiceDate': return 'Invoice Date';
             case 'gstInvoiceNumber': return 'Invoice Number';
             case 'gstAmcName': return 'AMC Name';
+            case 'gstArnNumber': return 'ARN Number';
             case 'gstTotalValue': return 'Total Value';
             default: return key;
           }
         });
-  
+
       await Swal.fire({
         title: 'Form Validation Error',
         html: `Please fill in the following required fields:<br>${invalidFields.join('<br>')}`,
@@ -191,13 +231,13 @@ export class UpdateGstEntryFormComponent implements OnInit, OnDestroy {
       });
       return;
     }
-  
+
     const formData = this.gstUpdateForm.getRawValue();
     const data = {
       ...formData,
       hideStatus: 0,
     };
-    
+
     this.loading = true;
     try {
       const response = await lastValueFrom(this.gstEntryFormsService.processGst(data, this.gstId));

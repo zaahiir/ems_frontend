@@ -26,7 +26,6 @@
               class="form-control"
               accept=".xlsx,.xls"
               (change)="onFileSelected($event)"
-              formControlName="excelFile"
               required
             />
             <c-form-feedback [valid]="false" *ngIf="f['excelFile'].errors && f['excelFile'].touched">

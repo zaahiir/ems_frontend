@@ -1,3 +1,4 @@
+// Component updates (list-nav.component.ts)
 import { Component, OnInit } from '@angular/core';
 import { NgClass, NgStyle, CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
@@ -9,7 +10,7 @@ import { NavService } from '../../../common-service/nav/nav.service';
 import { navCommonInterface } from '../../../interfaces/interfaces';
 import Swal from 'sweetalert2';
 import { Subject } from 'rxjs';
-import { takeUntil, debounceTime, distinctUntilChanged, switchMap } from 'rxjs/operators';
+import { takeUntil } from 'rxjs/operators';
 
 @Component({
   selector: 'app-list-nav',
@@ -30,25 +31,34 @@ export class ListNavComponent implements OnInit {
   itemsPerPage = 100;
   totalItems = 0;
   totalPages = 0;
-  searchTerms = new Subject<string>();
+
+  // Search-related properties
+  searchText: string = '';
+  currentSearchTerm: string = '';
+  searchCache: Map<string, any> = new Map();
+
+  // Mode selection
   activeMode: 'single' | 'historic' | null = null;
   singleDate: string = '';
   startDate: string = '';
   endDate: string = '';
+
+  // Loading states
   isLoading: boolean = false;
+  isSearching: boolean = false;
+  isPaginating: boolean = false;
+  paginationDirection: 'next' | 'prev' | null = null;
+
+  // Pagination
   nextCursor: string | null = null;
   currentCursor: string | null = null;
-  prevCursors: string[] = [];
-  currentSearchTerm: string = '';
-  currentData: navCommonInterface[][] = [];
+
   private unsubscribe$ = new Subject<void>();
 
   constructor(private navService: NavService) {}
 
   ngOnInit() {
     this.loadNavList();
-    this.setupSearch();
-    this.loadTotalCount();
   }
 
   ngOnDestroy() {
@@ -56,43 +66,69 @@ export class ListNavComponent implements OnInit {
     this.unsubscribe$.complete();
   }
 
-  setupSearch() {
-    this.searchTerms.pipe(
-      takeUntil(this.unsubscribe$),
-      debounceTime(300),
-      distinctUntilChanged()
-    ).subscribe(term => {
-      this.currentSearchTerm = term;
-      this.resetPagination();
-      this.loadNavList();
-    });
-  }
+  /**
+   * Perform search when search button is clicked
+   */
+  performSearch() {
+    const searchTerm = this.searchText.trim();
 
-  handleSearchResponse(response: any) {
-    this.isLoading = false;
-    if (response.data && Array.isArray(response.data.data)) {
-      this.navInterfaceList = response.data.data;
-      this.totalItems = response.data.total_count || this.navInterfaceList.length;
-      this.totalPages = Math.ceil(this.totalItems / this.itemsPerPage);
-      this.currentPage = 1;
-      this.nextCursor = null;
-      this.prevCursors = [];
-    } else {
-      console.error('Unexpected API response structure:', response);
-      throw new Error('Failed to load NAV list: Unexpected API response structure');
+    // Don't search if the term is the same as current search
+    if (searchTerm === this.currentSearchTerm) {
+      return;
     }
+
+    this.currentSearchTerm = searchTerm;
+    this.isSearching = true;
+    this.resetPagination();
+
+    // Clear cache if it's a new search
+    if (this.currentSearchTerm !== searchTerm) {
+      this.searchCache.clear();
+    }
+
+    this.loadNavList();
   }
 
+  /**
+   * Clear search and reset to show all records
+   */
+  clearSearch() {
+    this.searchText = '';
+    this.currentSearchTerm = '';
+    this.searchCache.clear();
+    this.resetPagination();
+    this.loadNavList();
+  }
+
+  /**
+   * Load NAV list with current search and pagination parameters
+   */
   loadNavList() {
-    this.isLoading = true;
+    // Set loading state only if not already searching or paginating
+    if (!this.isSearching && !this.isPaginating) {
+      this.isLoading = true;
+    }
+
+    // Create cache key for this request
+    const cacheKey = `${this.currentSearchTerm}_${this.currentCursor || 'first'}_${this.itemsPerPage}`;
+
+    // Check cache first for search results
+    if (this.currentSearchTerm && this.searchCache.has(cacheKey)) {
+      const cachedData = this.searchCache.get(cacheKey);
+      this.handleResponse(cachedData);
+      return;
+    }
+
     this.navService.listsNav(this.itemsPerPage, this.currentSearchTerm, this.currentCursor || '')
       .pipe(takeUntil(this.unsubscribe$))
       .subscribe(
         response => {
-          this.handleResponse(response);
-          if (!this.currentCursor) {
-            this.loadTotalCount();
+          // Cache search results
+          if (this.currentSearchTerm) {
+            this.searchCache.set(cacheKey, response);
           }
+
+          this.handleResponse(response);
         },
         error => {
           this.handleError(error);
@@ -100,53 +136,82 @@ export class ListNavComponent implements OnInit {
       );
   }
 
-  loadTotalCount() {
-    this.navService.getTotalCount(this.currentSearchTerm)
-      .pipe(takeUntil(this.unsubscribe$))
-      .subscribe(
-        count => {
-          this.totalItems = count;
-          this.totalPages = Math.ceil(this.totalItems / this.itemsPerPage);
-        },
-        error => {
-          console.error('Error loading total count:', error);
-        }
-      );
-  }
-
+  /**
+   * Handle successful API response
+   */
   handleResponse(response: any) {
     this.isLoading = false;
+    this.isSearching = false;
+    this.isPaginating = false;
+    this.paginationDirection = null;
+
     if (response.data && Array.isArray(response.data.data)) {
       this.navInterfaceList = response.data.data;
       this.nextCursor = response.data.next_cursor;
+      this.totalItems = response.data.total_count || 0;
+      this.totalPages = Math.ceil(this.totalItems / this.itemsPerPage);
+      this.updateCurrentPageDisplay();
     } else {
       console.error('Unexpected API response structure:', response);
-      throw new Error('Failed to load NAV list: Unexpected API response structure');
+      this.showError('Failed to load NAV list: Unexpected API response structure');
     }
   }
 
+  /**
+   * Handle API errors
+   */
   handleError(error: any) {
     this.isLoading = false;
+    this.isSearching = false;
+    this.isPaginating = false;
+    this.paginationDirection = null;
+
     if (error.code !== 'ERR_CANCELED') {
       console.error('Error loading NAV list:', error);
-      Swal.fire('Error', 'An error occurred while loading the NAV list', 'error');
+      this.showError('An error occurred while loading the NAV list');
     }
   }
 
+  /**
+   * Update current page display for pagination
+   */
+  updateCurrentPageDisplay() {
+    if (this.currentCursor) {
+      const cursorId = parseInt(this.currentCursor);
+      if (!isNaN(cursorId)) {
+        this.currentPage = Math.max(1, Math.floor((this.totalItems - cursorId) / this.itemsPerPage) + 1);
+      }
+    } else {
+      this.currentPage = 1;
+    }
+  }
+
+  /**
+   * Go to next page
+   */
   nextPage() {
-    if (this.nextCursor) {
+    if (this.nextCursor && !this.isLoading && !this.isSearching && !this.isPaginating) {
+      this.isPaginating = true;
+      this.paginationDirection = 'next';
       this.currentCursor = this.nextCursor;
       this.currentPage++;
       this.loadNavList();
     }
   }
 
+  /**
+   * Go to previous page
+   */
   previousPage() {
-    if (this.currentPage > 1) {
+    if (this.currentPage > 1 && !this.isLoading && !this.isSearching && !this.isPaginating) {
+      this.isPaginating = true;
+      this.paginationDirection = 'prev';
       this.currentPage--;
+
       if (this.navInterfaceList.length > 0) {
-        // Use the ID of the first item in the current list + 1
-        this.currentCursor = (this.navInterfaceList[0].id + 1).toString();
+        const firstItemId = this.navInterfaceList[0].id;
+        const estimatedPreviousCursor = firstItemId + this.itemsPerPage;
+        this.currentCursor = estimatedPreviousCursor.toString();
       } else {
         this.currentCursor = null;
       }
@@ -154,38 +219,44 @@ export class ListNavComponent implements OnInit {
     }
   }
 
-  search(term: string) {
-    this.searchTerms.next(term);
-    this.resetPagination();
-  }
-
+  /**
+   * Reset pagination to first page
+   */
   resetPagination() {
     this.currentCursor = null;
     this.currentPage = 1;
     this.nextCursor = null;
+    this.isPaginating = false;
+    this.paginationDirection = null;
   }
 
-  getPageRange(): number[] {
-    const range = 1; // This will give us 3 page numbers in total
-    let start = Math.max(1, this.currentPage - range);
-    let end = Math.min(this.totalPages, this.currentPage + range);
+  /**
+   * Check if search is active
+   */
+  isSearchActive(): boolean {
+    return this.currentSearchTerm.length > 0;
+  }
 
-    // Adjust start and end to always show 3 pages if possible
-    if (end - start + 1 < 3) {
-      if (start === 1) {
-        end = Math.min(3, this.totalPages);
-      } else if (end === this.totalPages) {
-        start = Math.max(1, this.totalPages - 2);
-      }
+  /**
+   * Get search results summary
+   */
+  getSearchSummary(): string {
+    if (this.isSearchActive()) {
+      return `Showing ${this.navInterfaceList.length} of ${this.totalItems} results for "${this.currentSearchTerm}"`;
     }
-
-    return Array.from({length: end - start + 1}, (_, i) => start + i);
+    return `Showing ${this.navInterfaceList.length} of ${this.totalItems} records`;
   }
 
+  /**
+   * Activate mode (single or historic)
+   */
   activateMode(mode: 'single' | 'historic') {
     this.activeMode = mode;
   }
 
+  /**
+   * Reset mode selection
+   */
   resetMode() {
     this.activeMode = null;
     this.singleDate = '';
@@ -193,12 +264,18 @@ export class ListNavComponent implements OnInit {
     this.endDate = '';
   }
 
+  /**
+   * Convert date format for API
+   */
   convertDateFormat(dateString: string): string {
     const date = new Date(dateString);
     const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
     return `${date.getDate().toString().padStart(2, '0')}-${months[date.getMonth()]}-${date.getFullYear()}`;
-  }  
+  }
 
+  /**
+   * Submit single date for NAV data fetch
+   */
   submitSingleDate() {
     if (this.singleDate) {
       this.isLoading = true;
@@ -207,38 +284,23 @@ export class ListNavComponent implements OnInit {
         .then(response => {
           this.isLoading = false;
           Swal.fire('Success', 'NAV data fetched successfully', 'success').then(() => {
-            window.location.reload();
+            this.refreshList();
           });
         })
         .catch(error => {
           this.isLoading = false;
-          Swal.fire('Error', 'Failed to fetch NAV data', 'error');
+          this.showError('Failed to fetch NAV data');
         });
     } else {
       Swal.fire('Warning', 'Please select a date', 'warning');
     }
   }
-  
+
+  /**
+   * Submit date range for historic NAV data fetch
+   */
   submitDateRange() {
     if (this.startDate && this.endDate) {
-      // Remove this validation block
-      /*
-      const start = new Date(this.startDate);
-      const end = new Date(this.endDate);
-      const oneYearLater = new Date(start);
-      oneYearLater.setFullYear(oneYearLater.getFullYear() + 1);
-  
-      if (end > oneYearLater) {
-        Swal.fire({
-          title: 'Date Range Too Large',
-          text: 'Please select a date range of 1 year or less.',
-          icon: 'warning',
-          confirmButtonText: 'OK'
-        });
-        return;
-      }
-      */
-  
       this.isLoading = true;
       const formattedStartDate = this.convertDateFormat(this.startDate);
       const formattedEndDate = this.convertDateFormat(this.endDate);
@@ -246,18 +308,21 @@ export class ListNavComponent implements OnInit {
         .then(response => {
           this.isLoading = false;
           Swal.fire('Success', 'Historic NAV data fetched successfully', 'success').then(() => {
-            window.location.reload();
+            this.refreshList();
           });
         })
         .catch(error => {
           this.isLoading = false;
-          Swal.fire('Error', 'Failed to fetch historic NAV data', 'error');
+          this.showError('Failed to fetch historic NAV data');
         });
     } else {
       Swal.fire('Warning', 'Please select both start and end dates', 'warning');
     }
   }
 
+  /**
+   * Delete NAV entry
+   */
   async deleteAum(id: number) {
     const result = await Swal.fire({
       title: 'Are you sure?',
@@ -275,9 +340,10 @@ export class ListNavComponent implements OnInit {
         if (response.data.code === 1) {
           this.navInterfaceList = this.navInterfaceList.filter(item => item.id !== id);
           this.totalItems--;
+          this.searchCache.clear();
+
           await Swal.fire('Deleted!', 'NAV has been deleted.', 'success');
-          
-          // If the list is now empty and there's a next cursor, load the next batch
+
           if (this.navInterfaceList.length === 0 && this.nextCursor) {
             this.loadNavList();
           }
@@ -286,13 +352,51 @@ export class ListNavComponent implements OnInit {
         }
       } catch (error) {
         console.error('Error deleting NAV:', error);
-        await Swal.fire('Error', 'An error occurred while deleting the NAV', 'error');
+        this.showError('An error occurred while deleting the NAV');
       }
     }
   }
 
+  /**
+   * Refresh the list
+   */
   refreshList() {
+    this.searchCache.clear();
     this.resetPagination();
     this.loadNavList();
+  }
+
+  /**
+   * Show error message
+   */
+  private showError(message: string) {
+    Swal.fire('Error', message, 'error');
+  }
+
+  /**
+   * Handle API fallback if PostgreSQL function fails
+   */
+  async handleSearchFallback() {
+    try {
+      const response = await this.navService.listNavFallback(
+        this.itemsPerPage,
+        this.currentSearchTerm,
+        this.currentCursor || ''
+      ).toPromise();
+
+      this.handleResponse(response);
+    } catch (error) {
+      console.error('Fallback search also failed:', error);
+      this.showError('Search functionality is temporarily unavailable');
+    }
+  }
+
+  /**
+   * Handle large datasets
+   */
+  handleLargeDataset() {
+    if (this.totalItems > 10000) {
+      console.warn('Large dataset detected. Consider implementing virtual scrolling.');
+    }
   }
 }

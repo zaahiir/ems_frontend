@@ -16,15 +16,15 @@ interface User {
 interface DecodedToken {
   exp: number;
   [key: string]: any;
-}  
+}
 
 @Injectable({
   providedIn: 'root',
 })
 
 export class AuthService {
-  private apiUrl = 'https://backend.faiop.com/apis';
-  // private apiUrl = 'http://localhost/apis';
+  // private apiUrl = 'https://backend.faiop.com/apis';
+  private apiUrl = 'http://localhost/apis';
   private currentUserSubject: BehaviorSubject<any>;
   public currentUser: Observable<any>;
   private tokenExpirationTimer: any;
@@ -98,7 +98,7 @@ export class AuthService {
   getUserProfile(): Observable<User> {
     const userType = localStorage.getItem('user_type');
     const userId = localStorage.getItem('user_id');
-  
+
     if (userType === 'employee' && userId) {
       return this.getEmployeeProfile(userId);
     } else if (userType === 'client') {
@@ -113,7 +113,7 @@ export class AuthService {
   private getSuperuserProfile(): Observable<User> {
     const superuserData: User = {
       id: localStorage.getItem('user_id') || '',
-      name: localStorage.getItem('user_name') || localStorage.getItem('username') || '',  
+      name: localStorage.getItem('user_name') || localStorage.getItem('username') || '',
       email: localStorage.getItem('user_email') || '',
       user_type: 'superuser',
       user_type_name: 'Superuser'
@@ -123,7 +123,7 @@ export class AuthService {
 
   private getEmployeeProfile(userId: string): Observable<User> {
     const accessToken = localStorage.getItem('access_token');
-    
+
     if (!accessToken) {
       return throwError(() => new Error('No access token found'));
     }
@@ -237,7 +237,7 @@ export class AuthService {
       const expirationTime = decodedToken.exp * 1000; // Convert to milliseconds
       const currentTime = Date.now();
       const timeUntilExpiration = expirationTime - currentTime;
-  
+
       if (timeUntilExpiration > 0) {
         this.tokenExpirationTimer = timer(timeUntilExpiration).pipe(
           switchMap(() => this.refreshToken())
@@ -288,7 +288,7 @@ export class AuthService {
   private autoLogout(): void {
     this.ngZone.run(() => {
       this.clearUserData();
-      this.router.navigate(['/login'], { 
+      this.router.navigate(['/login'], {
         queryParams: { returnUrl: this.router.url }
       });
     });
@@ -299,7 +299,7 @@ export class AuthService {
     if (!refreshToken) {
       return of(false);
     }
-  
+
     return this.http.post<any>(`${this.apiUrl}/token/refresh/`, { refresh: refreshToken }).pipe(
       map(response => {
         if (response && response.access) {

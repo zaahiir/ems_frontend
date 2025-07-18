@@ -1,4 +1,4 @@
-
+<!-- (list-nav.component.html) -->
 <c-col xs="12">
   <c-card class="mb-4">
     <c-card-body>
@@ -12,9 +12,9 @@
         <!-- Single Date Mode -->
         <div class="d-grid gap-2 d-md-flex justify-content-md" *ngIf="activeMode === 'single'">
           <input cFormControl type="date" [(ngModel)]="singleDate" name="singleDate">
-          <a cButton 
-             color="primary" 
-             role="button" 
+          <a cButton
+             color="primary"
+             role="button"
              (click)="submitSingleDate()"
              [disabled]="isLoading">
             <c-spinner *ngIf="isLoading" aria-hidden="true" size="sm"></c-spinner>
@@ -29,9 +29,9 @@
         <div class="d-grid gap-2 d-md-flex justify-content-md" *ngIf="activeMode === 'historic'">
           <input cFormControl type="date" [(ngModel)]="startDate" name="startDate" placeholder="Start Date">
           <input cFormControl type="date" [(ngModel)]="endDate" name="endDate" placeholder="End Date">
-          <a cButton 
-             color="primary" 
-             role="button" 
+          <a cButton
+             color="primary"
+             role="button"
              (click)="submitDateRange()"
              [disabled]="isLoading">
             <c-spinner *ngIf="isLoading" aria-hidden="true" size="sm"></c-spinner>
@@ -46,17 +46,44 @@
   </c-card>
 </c-col>
 
-
 <c-row ngPreserveWhitespaces>
   <c-col xs="12">
     <c-card class="mb-4">
       <c-card-body>
-        <c-col md="3" class="mb-4 flex justify-content-md-end">
-          <input cFormControl id="validationCustom09" 
-            (input)="search($any($event.target).value)"
-            type="search" 
-            placeholder="search" />
+        <!-- Search input with search button -->
+        <c-col md="4" class="mb-4 flex justify-content-md-end">
+          <div class="input-group">
+            <input cFormControl
+                   id="searchInput"
+                   [(ngModel)]="searchText"
+                   type="search"
+                   placeholder="Search AMC, Fund Name, or NAV..."
+                   [disabled]="isSearching"
+                   (keyup.enter)="performSearch()" />
+            <button cButton
+                    color="primary"
+                    type="button"
+                    [disabled]="isSearching"
+                    (click)="performSearch()">
+              <c-spinner *ngIf="isSearching" aria-hidden="true" size="sm"></c-spinner>
+              <span *ngIf="!isSearching">Search</span>
+            </button>
+            <button cButton
+                    color="secondary"
+                    type="button"
+                    [disabled]="isSearching"
+                    (click)="clearSearch()"
+                    *ngIf="searchText">
+              Clear
+            </button>
+          </div>
         </c-col>
+
+        <!-- Search Results Summary -->
+        <c-col xs="12" class="mb-3" *ngIf="searchText">
+          <small class="text-muted">{{ getSearchSummary() }}</small>
+        </c-col>
+
         <table [hover]="true" [striped]="true" [bordered]="true" cTable>
           <thead>
             <tr>
@@ -65,11 +92,32 @@
               <th scope="col">Fund Name</th>
               <th scope="col">Nav</th>
               <th scope="col">Date</th>
-              <th scope="col">Action</th>  
+              <th scope="col">Action</th>
             </tr>
           </thead>
           <tbody>
-            <tr *ngFor="let aum of navInterfaceList; let i = index">
+            <!-- Show loading row when paginating -->
+            <tr *ngIf="isPaginating">
+              <td colspan="6" class="text-center py-4">
+                <c-spinner aria-hidden="true" size="sm"></c-spinner>
+                <span class="ms-2">Loading...</span>
+              </td>
+            </tr>
+            <!-- Show loading row when searching -->
+            <tr *ngIf="isSearching && !isPaginating">
+              <td colspan="6" class="text-center py-4">
+                <c-spinner aria-hidden="true" size="sm"></c-spinner>
+                <span class="ms-2">Searching...</span>
+              </td>
+            </tr>
+            <!-- Show no results message -->
+            <tr *ngIf="!isSearching && !isPaginating && navInterfaceList.length === 0">
+              <td colspan="6" class="text-center py-4">
+                <span class="text-muted">No records found</span>
+              </td>
+            </tr>
+            <!-- Show data rows when not searching or paginating -->
+            <tr *ngFor="let aum of navInterfaceList; let i = index" [ngClass]="{'d-none': isSearching || isPaginating}">
               <th>{{ (currentPage - 1) * itemsPerPage + i + 1 }}</th>
               <td>{{ aum.amcName }}</td>
               <td>{{ aum.navFundName }}</td>
@@ -82,15 +130,29 @@
             </tr>
           </tbody>
         </table>
-        <c-pagination aria-label="Page navigation example" *ngIf="totalItems > itemsPerPage">
+
+        <!-- Pagination with spinners -->
+        <c-pagination aria-label="Page navigation example" *ngIf="totalItems > itemsPerPage && !isSearching">
           <c-page-item>
-            <a cPageLink (click)="previousPage()" [attr.aria-disabled]="currentPage === 1">Previous</a>
+            <a cPageLink
+               (click)="previousPage()"
+               [attr.aria-disabled]="currentPage === 1 || isPaginating"
+               [class.disabled]="currentPage === 1 || isPaginating">
+              <c-spinner *ngIf="isPaginating && paginationDirection === 'prev'" aria-hidden="true" size="sm" class="me-1"></c-spinner>
+              <span *ngIf="!isPaginating || paginationDirection !== 'prev'">Previous</span>
+            </a>
           </c-page-item>
           <c-page-item>
             <a cPageLink>{{ currentPage }} / {{ totalPages }}</a>
           </c-page-item>
           <c-page-item>
-            <a cPageLink (click)="nextPage()" [attr.aria-disabled]="!nextCursor">Next</a>
+            <a cPageLink
+               (click)="nextPage()"
+               [attr.aria-disabled]="!nextCursor || isPaginating"
+               [class.disabled]="!nextCursor || isPaginating">
+              <c-spinner *ngIf="isPaginating && paginationDirection === 'next'" aria-hidden="true" size="sm" class="me-1"></c-spinner>
+              <span *ngIf="!isPaginating || paginationDirection !== 'next'">Next</span>
+            </a>
           </c-page-item>
         </c-pagination>
       </c-card-body>

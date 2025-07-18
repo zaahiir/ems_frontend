@@ -22,7 +22,10 @@ export class UpdateNavComponent implements OnInit {
   navId = '0';
   amcs: any[] = [];
   funds: any[] = [];
-  loadingFunds = false; 
+  loadingFunds = false;
+  isEditMode = false;
+  loadingNavData = false;
+  previousAmcId: string = '';
 
   private destroy$ = new Subject<void>();
 
@@ -35,31 +38,32 @@ export class UpdateNavComponent implements OnInit {
   ) {
     this.navUpdateForm = this.fb.group({
       navAmcName: ['', Validators.required],
-      navFundName: ['', Validators.required],
+      navFundName: [{ value: '', disabled: true }, Validators.required],
       nav: ['', [Validators.required, Validators.min(0)]],
       navDate: ['', Validators.required]
     });
   }
-  
+
   async ngOnInit(): Promise<void> {
     try {
+      // Load AMCs first
       await this.loadAmcs();
-      
-      // Subscribe to AMC changes before loading data
-      this.navUpdateForm.get('navAmcName')?.valueChanges.subscribe(amcId => {
-        if (amcId) {
-          this.updateFundOptions(Number(amcId));
-        } else {
-          this.funds = [];
-          this.navUpdateForm.get('navFundName')?.disable();
-          this.navUpdateForm.get('navFundName')?.setValue('');
-        }
-      });
-      
-      // Then load the route params and nav data
-      this.route.params.subscribe(params => {
+
+      // Get route params and determine mode
+      this.route.params.subscribe(async params => {
         this.navId = params['id'] || '0';
-        this.loadNavUpdateData();
+        this.isEditMode = this.navId !== '0';
+
+        console.log('Route params:', params);
+        console.log('Nav ID:', this.navId);
+        console.log('Edit mode:', this.isEditMode);
+
+        if (this.isEditMode) {
+          await this.loadNavUpdateData();
+        } else {
+          // For new entries, set up AMC change listener immediately
+          this.setupAmcChangeListener();
+        }
       });
     } catch (error) {
       console.error('Error during initialization:', error);
@@ -67,49 +71,152 @@ export class UpdateNavComponent implements OnInit {
     }
   }
 
+  private setupAmcChangeListener(): void {
+    this.navUpdateForm.get('navAmcName')?.valueChanges.subscribe(async amcId => {
+      console.log('AMC changed to:', amcId);
+
+      if (amcId) {
+        // Store previous AMC ID for potential rollback
+        if (this.isEditMode && this.previousAmcId && this.previousAmcId !== amcId) {
+          const result = await this.showAmcChangeNotification();
+          if (!result) {
+            // User cancelled, restore previous AMC selection
+            this.navUpdateForm.get('navAmcName')?.setValue(this.previousAmcId, { emitEvent: false });
+            return;
+          }
+        }
+
+        // Clear the fund selection when AMC changes
+        this.navUpdateForm.get('navFundName')?.setValue('');
+        this.updateFundOptions(Number(amcId));
+
+        // Update previous AMC ID
+        this.previousAmcId = amcId;
+      } else {
+        this.funds = [];
+        this.navUpdateForm.get('navFundName')?.disable();
+        this.navUpdateForm.get('navFundName')?.setValue('');
+        this.previousAmcId = '';
+      }
+    });
+  }
+
+  private async showAmcChangeNotification(): Promise<boolean> {
+    if (this.isEditMode) {
+      const result = await Swal.fire({
+        title: 'AMC Changed',
+        text: 'You have changed the AMC. Please select the appropriate fund for this AMC.',
+        icon: 'info',
+        confirmButtonText: 'OK, I will select a fund',
+        showCancelButton: true,
+        cancelButtonText: 'Cancel change',
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33'
+      });
+
+      return result.isConfirmed;
+    }
+    return true;
+  }
+
   get f() { return this.navUpdateForm.controls; }
 
   async loadNavUpdateData(): Promise<void> {
-    if (this.navId !== '0') {
-      try {
-        const response = await this.navService.getNavUpdateData(this.navId);
-        if (response && response.data && response.data.code === 1) {
-          const navData = response.data.data;
-          
-          // First set AMC value without triggering valueChanges
-          this.navUpdateForm.get('navAmcName')?.setValue(navData.amcId, { emitEvent: false });
-          
-          // Then load the funds for this AMC
-          this.loadingFunds = true;
-          await this.updateFundOptions(navData.amcId);
-          this.loadingFunds = false;
-          
-          // Now that funds are loaded, set the fund value and other form values
+    if (this.navId === '0') return;
+
+    this.loadingNavData = true;
+    try {
+      console.log('Loading NAV data for ID:', this.navId);
+      const response = await this.navService.getNavUpdateData(this.navId);
+
+      console.log('Full API response:', response);
+
+      if (response && response.data) {
+        let navData;
+
+        // Handle different response structures
+        if (response.data.code === 1 && response.data.data) {
+          navData = response.data.data;
+        } else if (response.data.navId) {
+          navData = response.data;
+        } else {
+          throw new Error('Invalid response structure');
+        }
+
+        console.log('Extracted NAV data:', navData);
+
+        // Validate required fields
+        if (!navData.amcId || !navData.fundId) {
+          throw new Error('Missing required AMC or Fund ID in response');
+        }
+
+        // Store the original AMC ID
+        this.previousAmcId = navData.amcId.toString();
+
+        // Load funds for this AMC first
+        console.log('Loading funds for AMC ID:', navData.amcId);
+        this.loadingFunds = true;
+
+        try {
+          this.funds = await this.navService.getFundsByAmc(navData.amcId.toString());
+          console.log('Loaded funds:', this.funds);
+
+          // Enable fund dropdown
+          this.navUpdateForm.get('navFundName')?.enable();
+
+          // Set form values - Convert IDs to strings for select elements
           this.navUpdateForm.patchValue({
-            navFundName: navData.fundId,
+            navAmcName: navData.amcId.toString(),
+            navFundName: navData.fundId.toString(),
             nav: navData.nav,
             navDate: navData.navDate
           });
-          
-          this.cdr.detectChanges();
-        } else {
-          await Swal.fire('Error', 'Failed to load NAV data', 'error');
+
+          console.log('Form values after patch:', this.navUpdateForm.value);
+          console.log('Form controls status:', {
+            navAmcName: this.navUpdateForm.get('navAmcName')?.value,
+            navFundName: this.navUpdateForm.get('navFundName')?.value,
+            nav: this.navUpdateForm.get('nav')?.value,
+            navDate: this.navUpdateForm.get('navDate')?.value
+          });
+
+          // Set up change listener after data is loaded
+          this.setupAmcChangeListener();
+
+        } catch (fundError) {
+          console.error('Error loading funds:', fundError);
+          await Swal.fire('Error', 'Failed to load funds for the selected AMC', 'error');
+        } finally {
+          this.loadingFunds = false;
         }
-      } catch (error) {
-        console.error('Error loading NAV update data:', error);
-        await Swal.fire('Error', 'Failed to load NAV data', 'error');
+
+        this.cdr.detectChanges();
+
+      } else {
+        throw new Error('Invalid API response');
       }
+    } catch (error) {
+      console.error('Error loading NAV update data:', error);
+      await Swal.fire('Error', 'Failed to load NAV data', 'error');
+    } finally {
+      this.loadingNavData = false;
     }
   }
 
   async updateFundOptions(amcId: number): Promise<void> {
     this.loadingFunds = true;
     try {
+      console.log('Updating fund options for AMC ID:', amcId);
       this.funds = await this.navService.getFundsByAmc(amcId.toString());
+      console.log('Loaded funds:', this.funds);
+
       this.navUpdateForm.get('navFundName')?.enable();
-      if (this.funds.length > 0) {
-        this.navUpdateForm.get('navFundName')?.setValue(this.funds[0].id);
+
+      // Only auto-select the first fund if we're in new mode (not edit mode)
+      if (!this.isEditMode && this.funds.length > 0) {
+        this.navUpdateForm.get('navFundName')?.setValue(this.funds[0].id.toString());
       }
+
     } catch (error) {
       console.error('Error fetching funds:', error);
       await Swal.fire('Error', 'An error occurred while fetching funds', 'error');
@@ -122,9 +229,28 @@ export class UpdateNavComponent implements OnInit {
   async loadAmcs(): Promise<void> {
     try {
       const response = await this.navService.getAmc();
-      this.amcs = response.data;
+
+      // Handle different response structures for AMCs
+      if (response && response.data) {
+        if (Array.isArray(response.data)) {
+          this.amcs = response.data;
+        } else if (response.data.results && Array.isArray(response.data.results)) {
+          // Handle paginated response structure with results array
+          this.amcs = response.data.results;
+        } else if (response.data.data && Array.isArray(response.data.data)) {
+          this.amcs = response.data.data;
+        } else {
+          console.error('AMC data is not an array:', response.data);
+          this.amcs = [];
+        }
+      } else {
+        this.amcs = [];
+      }
+
+      console.log('AMCs loaded:', this.amcs);
     } catch (error) {
       console.error('Error loading AMCs:', error);
+      this.amcs = []; // Ensure it's always an array
       throw error;
     }
   }
@@ -133,20 +259,36 @@ export class UpdateNavComponent implements OnInit {
     this.customStylesValidated = true;
     this.submitted = true;
 
+    // Check if AMC is selected but fund is not selected
+    const amcValue = this.navUpdateForm.get('navAmcName')?.value;
+    const fundValue = this.navUpdateForm.get('navFundName')?.value;
+
+    if (amcValue && !fundValue) {
+      await Swal.fire({
+        title: 'Fund Selection Required',
+        text: 'Please select a fund for the chosen AMC.',
+        icon: 'warning',
+        confirmButtonText: 'OK',
+        confirmButtonColor: '#3085d6'
+      });
+      return;
+    }
+
     if (this.navUpdateForm.invalid) {
       const missingFields = this.getMissingFields();
       if (missingFields.length > 0) {
         await Swal.fire({
           title: 'Missing Required Fields',
           html: `Please fill in the following required fields:<br><br>${missingFields.join('<br>')}`,
-          icon: 'error'
+          icon: 'error',
+          confirmButtonColor: '#d33'
         });
       }
       return;
     }
 
     const formData = this.navUpdateForm.getRawValue();
-    
+
     const data = {
       navDate: formData.navDate,
       nav: formData.nav,
@@ -158,7 +300,7 @@ export class UpdateNavComponent implements OnInit {
 
     try {
       const response = await this.navService.updateNav(data, this.navId).toPromise();
-      
+
       if (response && response.data && response.data['code'] === 1) {
         await Swal.fire('Updated!', response.data['message'], 'success');
         this.router.navigate(['/forms/nav']);
@@ -185,8 +327,20 @@ export class UpdateNavComponent implements OnInit {
     return missingFields;
   }
 
+  private checkFundSelection(): boolean {
+    const amcValue = this.navUpdateForm.get('navAmcName')?.value;
+    const fundValue = this.navUpdateForm.get('navFundName')?.value;
+
+    return !(amcValue && !fundValue && this.funds.length > 0);
+  }
+
   onCancel(): void {
     this.customStylesValidated = false;
     this.router.navigate(['/forms/nav']);
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 }

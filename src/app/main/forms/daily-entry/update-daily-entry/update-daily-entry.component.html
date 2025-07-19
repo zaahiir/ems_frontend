@@ -53,12 +53,6 @@
           </c-col>
 
           <c-col [cFormFloating]="true" md="6">
-            <input cFormControl id="clientFolioNumber" formControlName="clientFolioNumber" type="text" placeholder="Client Folio Number" />
-            <label cLabel for="clientFolioNumber" class="ms-2">Client Folio Number</label>
-            <c-form-feedback [valid]="false" *ngIf="f['clientFolioNumber'].errors && (f['clientFolioNumber'].touched || submitted)">Please provide a Folio Number.</c-form-feedback>
-          </c-col>
-
-          <c-col [cFormFloating]="true" md="6">
             <select cSelect id="fundHouse" formControlName="fundHouse" required>
               <option value="" disabled selected>Select Fund House</option>
               <option [value]="amc.id" *ngFor="let amc of amcList">{{ amc.amcName }}</option>
@@ -74,6 +68,12 @@
             </select>
             <label cLabel for="fundName" class="ms-2">Fund Name</label>
             <c-form-feedback [valid]="false" *ngIf="f['fundName'].errors && (f['fundName'].touched || submitted)">Please select a Fund Name.</c-form-feedback>
+          </c-col>
+
+          <c-col [cFormFloating]="true" md="6">
+            <input cFormControl id="clientFolioNumber" formControlName="clientFolioNumber" type="text" placeholder="Client Folio Number" />
+            <label cLabel for="clientFolioNumber" class="ms-2">Client Folio Number</label>
+            <c-form-feedback [valid]="false" *ngIf="f['clientFolioNumber'].errors && (f['clientFolioNumber'].touched || submitted)">Please provide a Folio Number.</c-form-feedback>
           </c-col>
 
           <c-col [cFormFloating]="true" md="6">

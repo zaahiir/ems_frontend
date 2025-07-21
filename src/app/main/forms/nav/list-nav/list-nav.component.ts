@@ -238,16 +238,6 @@ export class ListNavComponent implements OnInit {
   }
 
   /**
-   * Get search results summary
-   */
-  getSearchSummary(): string {
-    if (this.isSearchActive()) {
-      return `Showing ${this.navInterfaceList.length} of ${this.totalItems} results for "${this.currentSearchTerm}"`;
-    }
-    return `Showing ${this.navInterfaceList.length} of ${this.totalItems} records`;
-  }
-
-  /**
    * Activate mode (single or historic)
    */
   activateMode(mode: 'single' | 'historic') {

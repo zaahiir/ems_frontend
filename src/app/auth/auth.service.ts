@@ -23,8 +23,8 @@ interface DecodedToken {
 })
 
 export class AuthService {
-  // private apiUrl = 'https://backend.faiop.com/apis';
-  private apiUrl = 'http://localhost/apis';
+  private apiUrl = 'https://backend.faiop.com/apis';
+  // private apiUrl = 'http://localhost/apis';
   private currentUserSubject: BehaviorSubject<any>;
   public currentUser: Observable<any>;
   private tokenExpirationTimer: any;

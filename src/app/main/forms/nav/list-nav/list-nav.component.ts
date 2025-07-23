@@ -1,4 +1,4 @@
-// Component updates (list-nav.component.ts)
+// list-nav.component.ts
 import { Component, OnInit } from '@angular/core';
 import { NgClass, NgStyle, CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
@@ -49,9 +49,10 @@ export class ListNavComponent implements OnInit {
   isPaginating: boolean = false;
   paginationDirection: 'next' | 'prev' | null = null;
 
-  // Pagination
+  // Pagination - Updated for proper page tracking
   nextCursor: string | null = null;
   currentCursor: string | null = null;
+  previousCursors: string[] = []; // Stack to track previous page cursors
 
   private unsubscribe$ = new Subject<void>();
 
@@ -64,6 +65,22 @@ export class ListNavComponent implements OnInit {
   ngOnDestroy() {
     this.unsubscribe$.next();
     this.unsubscribe$.complete();
+  }
+
+  /**
+   * Get current page display range (e.g., "1-100", "101-200")
+   */
+  getCurrentPageRange(): string {
+    const startItem = (this.currentPage - 1) * this.itemsPerPage + 1;
+    const endItem = Math.min(this.currentPage * this.itemsPerPage, this.totalItems);
+    return `${startItem}-${endItem}`;
+  }
+
+  /**
+   * Get current serial number for table rows
+   */
+  getCurrentSerialNumber(index: number): number {
+    return (this.currentPage - 1) * this.itemsPerPage + index + 1;
   }
 
   /**
@@ -110,7 +127,7 @@ export class ListNavComponent implements OnInit {
     }
 
     // Create cache key for this request
-    const cacheKey = `${this.currentSearchTerm}_${this.currentCursor || 'first'}_${this.itemsPerPage}`;
+    const cacheKey = `${this.currentSearchTerm}_${this.currentCursor || 'first'}_${this.itemsPerPage}_page_${this.currentPage}`;
 
     // Check cache first for search results
     if (this.currentSearchTerm && this.searchCache.has(cacheKey)) {
@@ -150,7 +167,6 @@ export class ListNavComponent implements OnInit {
       this.nextCursor = response.data.next_cursor;
       this.totalItems = response.data.total_count || 0;
       this.totalPages = Math.ceil(this.totalItems / this.itemsPerPage);
-      this.updateCurrentPageDisplay();
     } else {
       console.error('Unexpected API response structure:', response);
       this.showError('Failed to load NAV list: Unexpected API response structure');
@@ -173,28 +189,20 @@ export class ListNavComponent implements OnInit {
   }
 
   /**
-   * Update current page display for pagination
-   */
-  updateCurrentPageDisplay() {
-    if (this.currentCursor) {
-      const cursorId = parseInt(this.currentCursor);
-      if (!isNaN(cursorId)) {
-        this.currentPage = Math.max(1, Math.floor((this.totalItems - cursorId) / this.itemsPerPage) + 1);
-      }
-    } else {
-      this.currentPage = 1;
-    }
-  }
-
-  /**
    * Go to next page
    */
   nextPage() {
-    if (this.nextCursor && !this.isLoading && !this.isSearching && !this.isPaginating) {
+    if (this.nextCursor && !this.isLoading && !this.isSearching && !this.isPaginating && this.currentPage < this.totalPages) {
       this.isPaginating = true;
       this.paginationDirection = 'next';
+
+      // Store current cursor for going back
+      this.previousCursors.push(this.currentCursor || '');
+
+      // Move to next page
       this.currentCursor = this.nextCursor;
       this.currentPage++;
+
       this.loadNavList();
     }
   }
@@ -206,15 +214,17 @@ export class ListNavComponent implements OnInit {
     if (this.currentPage > 1 && !this.isLoading && !this.isSearching && !this.isPaginating) {
       this.isPaginating = true;
       this.paginationDirection = 'prev';
+
+      // Move to previous page
       this.currentPage--;
 
-      if (this.navInterfaceList.length > 0) {
-        const firstItemId = this.navInterfaceList[0].id;
-        const estimatedPreviousCursor = firstItemId + this.itemsPerPage;
-        this.currentCursor = estimatedPreviousCursor.toString();
+      // Get previous cursor from stack
+      if (this.previousCursors.length > 0) {
+        this.currentCursor = this.previousCursors.pop() || null;
       } else {
-        this.currentCursor = null;
+        this.currentCursor = null; // First page
       }
+
       this.loadNavList();
     }
   }
@@ -226,8 +236,23 @@ export class ListNavComponent implements OnInit {
     this.currentCursor = null;
     this.currentPage = 1;
     this.nextCursor = null;
+    this.previousCursors = [];
     this.isPaginating = false;
     this.paginationDirection = null;
+  }
+
+  /**
+   * Check if we can go to next page
+   */
+  canGoNext(): boolean {
+    return this.nextCursor !== null && this.currentPage < this.totalPages && !this.isPaginating;
+  }
+
+  /**
+   * Check if we can go to previous page
+   */
+  canGoPrevious(): boolean {
+    return this.currentPage > 1 && !this.isPaginating;
   }
 
   /**
@@ -330,11 +355,16 @@ export class ListNavComponent implements OnInit {
         if (response.data.code === 1) {
           this.navInterfaceList = this.navInterfaceList.filter(item => item.id !== id);
           this.totalItems--;
+          this.totalPages = Math.ceil(this.totalItems / this.itemsPerPage);
           this.searchCache.clear();
 
           await Swal.fire('Deleted!', 'NAV has been deleted.', 'success');
 
-          if (this.navInterfaceList.length === 0 && this.nextCursor) {
+          // If current page becomes empty and we're not on page 1, go to previous page
+          if (this.navInterfaceList.length === 0 && this.currentPage > 1) {
+            this.previousPage();
+          } else if (this.navInterfaceList.length === 0) {
+            // If we're on page 1 and it's empty, reload
             this.loadNavList();
           }
         } else {

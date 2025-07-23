@@ -1,4 +1,4 @@
-<!-- (list-nav.component.html) -->
+<!-- list-nav.component.html -->
 <c-col xs="12">
   <c-card class="mb-4">
     <c-card-body>
@@ -79,6 +79,16 @@
           </div>
         </c-col>
 
+        <!-- Results Summary -->
+        <div class="d-flex justify-content-between align-items-center mb-3" *ngIf="!isSearching && !isPaginating && navInterfaceList.length > 0">
+          <div class="text-muted small">
+            Showing {{ getCurrentPageRange() }} of {{ totalItems }} records
+          </div>
+          <div class="text-muted small">
+            Page {{ currentPage }} of {{ totalPages }}
+          </div>
+        </div>
+
         <table [hover]="true" [striped]="true" [bordered]="true" cTable>
           <thead>
             <tr>
@@ -95,7 +105,7 @@
             <tr *ngIf="isPaginating">
               <td colspan="6" class="text-center py-4">
                 <c-spinner aria-hidden="true" size="sm"></c-spinner>
-                <span class="ms-2">Loading...</span>
+                <span class="ms-2">Loading{{ paginationDirection === 'next' ? ' next' : ' previous' }} page...</span>
               </td>
             </tr>
             <!-- Show loading row when searching -->
@@ -113,7 +123,7 @@
             </tr>
             <!-- Show data rows when not searching or paginating -->
             <tr *ngFor="let aum of navInterfaceList; let i = index" [ngClass]="{'d-none': isSearching || isPaginating}">
-              <th>{{ (currentPage - 1) * itemsPerPage + i + 1 }}</th>
+              <th>{{ getCurrentSerialNumber(i) }}</th>
               <td>{{ aum.amcName }}</td>
               <td>{{ aum.navFundName }}</td>
               <td>{{ aum.nav }}</td>
@@ -126,30 +136,56 @@
           </tbody>
         </table>
 
-        <!-- Pagination with spinners -->
-        <c-pagination aria-label="Page navigation example" *ngIf="totalItems > itemsPerPage && !isSearching">
-          <c-page-item>
-            <a cPageLink
-               (click)="previousPage()"
-               [attr.aria-disabled]="currentPage === 1 || isPaginating"
-               [class.disabled]="currentPage === 1 || isPaginating">
-              <c-spinner *ngIf="isPaginating && paginationDirection === 'prev'" aria-hidden="true" size="sm" class="me-1"></c-spinner>
-              <span *ngIf="!isPaginating || paginationDirection !== 'prev'">Previous</span>
-            </a>
-          </c-page-item>
-          <c-page-item>
-            <a cPageLink>{{ currentPage }} / {{ totalPages }}</a>
-          </c-page-item>
-          <c-page-item>
-            <a cPageLink
-               (click)="nextPage()"
-               [attr.aria-disabled]="!nextCursor || isPaginating"
-               [class.disabled]="!nextCursor || isPaginating">
-              <c-spinner *ngIf="isPaginating && paginationDirection === 'next'" aria-hidden="true" size="sm" class="me-1"></c-spinner>
-              <span *ngIf="!isPaginating || paginationDirection !== 'next'">Next</span>
-            </a>
-          </c-page-item>
-        </c-pagination>
+        <!-- Enhanced Pagination with proper page display -->
+        <div class="d-flex justify-content-between align-items-center" *ngIf="totalItems > itemsPerPage && !isSearching">
+          <!-- Pagination Controls -->
+          <c-pagination aria-label="Page navigation example">
+            <c-page-item>
+              <a cPageLink
+                 (click)="previousPage()"
+                 [attr.aria-disabled]="!canGoPrevious()"
+                 [class.disabled]="!canGoPrevious()">
+                <c-spinner *ngIf="isPaginating && paginationDirection === 'prev'" aria-hidden="true" size="sm" class="me-1"></c-spinner>
+                <span *ngIf="!isPaginating || paginationDirection !== 'prev'">Previous</span>
+              </a>
+            </c-page-item>
+
+            <!-- Current Page Display -->
+            <c-page-item class="active">
+              <a cPageLink>{{ currentPage }}</a>
+            </c-page-item>
+
+            <!-- Show next page number if available -->
+            <c-page-item *ngIf="currentPage < totalPages">
+              <a cPageLink class="text-muted">{{ currentPage + 1 }}</a>
+            </c-page-item>
+
+            <!-- Show dots if there are more pages -->
+            <c-page-item *ngIf="currentPage + 1 < totalPages" class="disabled">
+              <a cPageLink>...</a>
+            </c-page-item>
+
+            <!-- Show last page if not already visible -->
+            <c-page-item *ngIf="currentPage + 1 < totalPages">
+              <a cPageLink class="text-muted">{{ totalPages }}</a>
+            </c-page-item>
+
+            <c-page-item>
+              <a cPageLink
+                 (click)="nextPage()"
+                 [attr.aria-disabled]="!canGoNext()"
+                 [class.disabled]="!canGoNext()">
+                <c-spinner *ngIf="isPaginating && paginationDirection === 'next'" aria-hidden="true" size="sm" class="me-1"></c-spinner>
+                <span *ngIf="!isPaginating || paginationDirection !== 'next'">Next</span>
+              </a>
+            </c-page-item>
+          </c-pagination>
+
+          <!-- Page Info -->
+          <div class="text-muted small">
+            Page {{ currentPage }} of {{ totalPages }} ({{ totalItems }} total records)
+          </div>
+        </div>
       </c-card-body>
     </c-card>
   </c-col>

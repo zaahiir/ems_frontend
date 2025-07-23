@@ -1,11 +1,11 @@
 export class BaseAPIUrl {
 
-    localUrl: string = "https://backend.faiop.com/apis/"
-    stagingUrl: string = "https://backend.faiop.com/apis/"
-    productionUrl: string = "https://backend.faiop.com/apis/";
-    // localUrl: string = "http://localhost/apis/"
-    // stagingUrl: string = "http://localhost/apis/"
-    // productionUrl: string = "http://localhost/apis/";
+    // localUrl: string = "https://backend.faiop.com/apis/"
+    // stagingUrl: string = "https://backend.faiop.com/apis/"
+    // productionUrl: string = "https://backend.faiop.com/apis/";
+    localUrl: string = "http://localhost/apis/"
+    stagingUrl: string = "http://localhost/apis/"
+    productionUrl: string = "http://localhost/apis/";
     constructor() { }
 
     getUrl(urlType: number) {

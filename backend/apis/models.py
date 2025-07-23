@@ -287,7 +287,7 @@ class GstEntryModel(models.Model):
     gstIGst = models.DecimalField(max_digits=20, decimal_places=2, null=True, blank=True)
     gstSGst = models.DecimalField(max_digits=20, decimal_places=2, null=True, blank=True)
     gstCGst = models.DecimalField(max_digits=20, decimal_places=2, null=True, blank=True)
-    gstRegistered = models.BooleanField(default=True) 
+    gstRegistered = models.BooleanField(default=True)
     hideStatus = models.IntegerField(default=0)
     createdAt = models.DateTimeField(auto_now_add=True)
     updatedAt = models.DateTimeField(auto_now=True)

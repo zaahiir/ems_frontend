@@ -1,0 +1,2 @@
+import './polyfills.server.mjs';
+import"./chunk-COT65Y5O.mjs";var e=[{path:"",data:{title:"Industry AUM"},children:[{path:"",redirectTo:"list",pathMatch:"full"},{path:"list",loadComponent:()=>import("./chunk-4LSVAAEX.mjs").then(t=>t.ListIndustryAumEntryComponent),data:{title:"List"}},{path:"add",loadComponent:()=>import("./chunk-GMSBESCA.mjs").then(t=>t.CreateIndustryAumEntryComponent),data:{title:"Create"}},{path:"update/:id",loadComponent:()=>import("./chunk-EH5NASFC.mjs").then(t=>t.UpdateIndustryAumEntryComponent),data:{title:"Update"}}]}];export{e as industryAumRoutes};

@@ -1,0 +1,2 @@
+import './polyfills.server.mjs';
+import"./chunk-COT65Y5O.mjs";var o=[{path:"",data:{title:"AUM YOY Growth"},children:[{path:"",redirectTo:"list",pathMatch:"full"},{path:"list",loadComponent:()=>import("./chunk-Q2BOHFXP.mjs").then(t=>t.ListAumEntryYoyGrowthComponent),data:{title:"List"}},{path:"add",loadComponent:()=>import("./chunk-KFD466UR.mjs").then(t=>t.CreateAumEntryYoyGrowthComponent),data:{title:"Create"}},{path:"update/:id",loadComponent:()=>import("./chunk-S236ZL34.mjs").then(t=>t.UpdateAumEntryYoyGrowthComponent),data:{title:"Edit"}}]}];export{o as yoyGrowthRoutes};

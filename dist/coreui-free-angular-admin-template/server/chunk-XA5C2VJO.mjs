@@ -1,0 +1,2 @@
+import './polyfills.server.mjs';
+import"./chunk-COT65Y5O.mjs";var a=[{path:"",data:{title:"Tasks"},children:[{path:"",loadComponent:()=>import("./chunk-CTWQ5VU2.mjs").then(t=>t.ListTasksComponent),data:{title:"List Tasks"}},{path:"add",loadComponent:()=>import("./chunk-NFRFBEES.mjs").then(t=>t.CreateTasksComponent),data:{title:"New Task"}},{path:"update/:id",loadComponent:()=>import("./chunk-U5O2LG2I.mjs").then(t=>t.UpdateTasksComponent),data:{title:"Update Tasks"}}]}];export{a as tasksRoutes};

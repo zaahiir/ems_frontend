@@ -1,0 +1,2 @@
+import './polyfills.server.mjs';
+import"./chunk-COT65Y5O.mjs";var a=[{path:"",data:{title:"Daily Entry Form"},children:[{path:"",redirectTo:"list",pathMatch:"full"},{path:"list",loadComponent:()=>import("./chunk-TZFVPKNS.mjs").then(t=>t.ListDailyEntryComponent),data:{title:"List"}},{path:"add",loadComponent:()=>import("./chunk-MBYAZB5V.mjs").then(t=>t.CreateDailyEntryComponent),data:{title:"Create"}},{path:"update/:id",loadComponent:()=>import("./chunk-RK7L2OEH.mjs").then(t=>t.UpdateDailyEntryComponent),data:{title:"Update"}}]}];export{a as dailyEntryRoutes};

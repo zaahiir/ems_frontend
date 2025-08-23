@@ -1,0 +1,2 @@
+import './polyfills.server.mjs';
+import"./chunk-COT65Y5O.mjs";var e=[{path:"",data:{title:"Issue"},children:[{path:"",redirectTo:"list",pathMatch:"full"},{path:"list",loadComponent:()=>import("./chunk-BIONQ3CJ.mjs").then(t=>t.ListIssueComponent),data:{title:"List"}},{path:"add",loadComponent:()=>import("./chunk-4VFN5GJN.mjs").then(t=>t.CreateIssueComponent),data:{title:"Create"}},{path:"update/:id",loadComponent:()=>import("./chunk-JR4NOC22.mjs").then(t=>t.UpdateIssueComponent),data:{title:"Update"}}]}];export{e as issueRoutes};

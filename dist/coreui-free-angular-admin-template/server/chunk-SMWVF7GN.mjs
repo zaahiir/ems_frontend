@@ -1,0 +1,2 @@
+import './polyfills.server.mjs';
+import"./chunk-COT65Y5O.mjs";var t=[{path:"",data:{title:"Employees"},children:[{path:"",loadComponent:()=>import("./chunk-I6IOJBPU.mjs").then(e=>e.ListEmployeesComponent),data:{title:"List Employees"}},{path:"add",loadComponent:()=>import("./chunk-4PG26VQD.mjs").then(e=>e.CreateEmployeesComponent),data:{title:"New Employee"}},{path:"update/:id",loadComponent:()=>import("./chunk-GXIRADYU.mjs").then(e=>e.UpdateEmployeesComponent),data:{title:"Update Employees"}}]}];export{t as employeesRoutes};

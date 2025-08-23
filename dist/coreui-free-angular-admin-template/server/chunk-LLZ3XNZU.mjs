@@ -1,0 +1,2 @@
+import './polyfills.server.mjs';
+import"./chunk-COT65Y5O.mjs";var e=[{path:"",data:{title:"Statement"},children:[{path:"",redirectTo:"list",pathMatch:"full"},{path:"list",loadComponent:()=>import("./chunk-PBQU6A3O.mjs").then(t=>t.ListStatementComponent),data:{title:"List"}},{path:"add",loadComponent:()=>import("./chunk-SBTR6MIS.mjs").then(t=>t.CreateStatementComponent),data:{title:"Create"}},{path:"update/:id",loadComponent:()=>import("./chunk-O6OAYANX.mjs").then(t=>t.UpdateStatementComponent),data:{title:"Update"}}]}];export{e as statementRoutes};

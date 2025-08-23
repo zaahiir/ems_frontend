@@ -1,0 +1,1 @@
+import"./chunk-MYAK5QVS.js";var a=[{path:"",data:{title:"Nav"},children:[{path:"",redirectTo:"list",pathMatch:"full"},{path:"list",loadComponent:()=>import("./chunk-PZ6JRWLV.js").then(t=>t.ListNavComponent),data:{title:"List"}},{path:"update/:id",loadComponent:()=>import("./chunk-76MGJELD.js").then(t=>t.UpdateNavComponent),data:{title:"Update"}}]}];export{a as navRoutes};

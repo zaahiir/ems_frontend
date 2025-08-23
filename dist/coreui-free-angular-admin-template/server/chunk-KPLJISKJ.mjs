@@ -1,0 +1,2 @@
+import './polyfills.server.mjs';
+import"./chunk-COT65Y5O.mjs";var a=[{path:"",data:{title:"ARN Master"},children:[{path:"",redirectTo:"list",pathMatch:"full"},{path:"list",loadComponent:()=>import("./chunk-U4IKFJ4U.mjs").then(t=>t.ListArnMasterFormComponent),data:{title:"List"}},{path:"add",loadComponent:()=>import("./chunk-26224SVW.mjs").then(t=>t.CreateArnMasterFormComponent),data:{title:"Create"}},{path:"update/:id",loadComponent:()=>import("./chunk-OGRNTQWE.mjs").then(t=>t.UpdateArnMasterFormComponent),data:{title:"Edit"}}]}];export{a as arnFormRoutes};

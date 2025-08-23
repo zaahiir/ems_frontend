@@ -1,0 +1,2 @@
+import './polyfills.server.mjs';
+import"./chunk-COT65Y5O.mjs";var a=[{path:"",data:{title:"Nav"},children:[{path:"",redirectTo:"list",pathMatch:"full"},{path:"list",loadComponent:()=>import("./chunk-XNSGQPZN.mjs").then(t=>t.ListNavComponent),data:{title:"List"}},{path:"update/:id",loadComponent:()=>import("./chunk-C5UB63CU.mjs").then(t=>t.UpdateNavComponent),data:{title:"Update"}}]}];export{a as navRoutes};

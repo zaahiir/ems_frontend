@@ -99,6 +99,46 @@ $ npm start
 
 Navigate to [http://localhost:4200](http://localhost:4200). The app will automatically reload if you change any of the source files.
 
+### Server-Side Rendering (SSR)
+
+This project now supports Server-Side Rendering with Angular Universal. This provides better SEO, faster initial page loads, and improved performance.
+
+#### Building for SSR
+
+```bash
+# Build both browser and server bundles
+npm run build:ssr
+
+# Or use the deployment script
+./deploy-ssr.sh          # Linux/Mac
+deploy-ssr.bat           # Windows
+```
+
+#### Running SSR
+
+```bash
+# Development mode with SSR
+npm run dev:ssr
+
+# Production SSR server
+npm run serve:ssr
+```
+
+#### Prerendering
+
+```bash
+# Generate static HTML for specified routes
+npm run prerender
+```
+
+#### Build Output
+
+After building, you'll have:
+- **Browser bundle**: `dist/coreui-free-angular-admin-template/browser/` (for client-side)
+- **Server bundle**: `dist/coreui-free-angular-admin-template/server/` (for Node.js server)
+
+The SSR server runs on port 4000 by default (configurable via PORT environment variable).
+
 #### Build
 
 Run `build` to build the project. The build artifacts will be stored in the `dist/` directory.

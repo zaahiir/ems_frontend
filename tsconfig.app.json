@@ -3,6 +3,7 @@
   "extends": "./tsconfig.json",
   "compilerOptions": {
     "outDir": "./out-tsc/app",
+    "allowSyntheticDefaultImports": true,
     "types": [
       "@angular/localize"
     ],
@@ -13,9 +14,15 @@
     }
   },
   "files": [
-    "src/main.ts"
+    "src/main.ts",
+    "server.ts"
   ],
   "include": [
-    "src/**/*.d.ts"
+    "src/**/*.d.ts",
+    "src/**/*.ts"
+  ],
+  "exclude": [
+    "src/**/*.spec.ts",
+    "src/test.ts"
   ]
 }

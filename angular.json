@@ -26,6 +26,7 @@
             "outputPath": "dist/coreui-free-angular-admin-template",
             "index": "src/index.html",
             "browser": "src/main.ts",
+            "server": "src/main.server.ts",
             "polyfills": [
               "zone.js",
               "@angular/localize/init"
@@ -41,7 +42,15 @@
               "src/scss/styles.scss"
             ],
             "scripts": [],
-            "allowedCommonJsDependencies": []
+            "allowedCommonJsDependencies": [
+              "sweetalert2",
+              "form-data",
+              "proxy-from-env",
+              "follow-redirects"
+            ],
+            "ssr": {
+              "entry": "server.ts"
+            }
           },
           "configurations": {
             "production": {
@@ -64,6 +73,33 @@
               "extractLicenses": false,
               "sourceMap": true,
               "namedChunks": true
+            }
+          },
+          "defaultConfiguration": "production"
+        },
+        "serve-ssr": {
+          "builder": "@angular-devkit/build-angular:ssr-dev-server",
+          "configurations": {
+            "development": {
+              "buildTarget": "coreui-free-angular-admin-template:build:development"
+            },
+            "production": {
+              "buildTarget": "coreui-free-angular-admin-template:build:production"
+            }
+          },
+          "defaultConfiguration": "development"
+        },
+        "prerender": {
+          "builder": "@angular-devkit/build-angular:prerender",
+          "options": {
+            "routesFile": "routes.txt"
+          },
+          "configurations": {
+            "production": {
+              "buildTarget": "coreui-free-angular-admin-template:build:production"
+            },
+            "development": {
+              "buildTarget": "coreui-free-angular-admin-template:build:development"
             }
           },
           "defaultConfiguration": "production"

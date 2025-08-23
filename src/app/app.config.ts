@@ -1,4 +1,4 @@
-import { ApplicationConfig, importProvidersFrom } from '@angular/core';
+import { ApplicationConfig, importProvidersFrom, isDevMode } from '@angular/core';
 import { provideAnimations } from '@angular/platform-browser/animations';
 import { provideHttpClient, withInterceptors, HTTP_INTERCEPTORS } from '@angular/common/http';
 import { provideRouter } from '@angular/router';
@@ -21,5 +21,13 @@ export const appConfig: ApplicationConfig = {
     { provide: HTTP_INTERCEPTORS, useClass: AuthInterceptor, multi: true },
     { provide: HTTP_INTERCEPTORS, useClass: AuthErrorInterceptor, multi: true },
     { provide: ErrorHandler, useClass: ErrorHandlerService }
+  ]
+};
+
+// Browser-specific configuration
+export const browserConfig: ApplicationConfig = {
+  providers: [
+    ...appConfig.providers,
+    // Add any browser-specific providers here
   ]
 };

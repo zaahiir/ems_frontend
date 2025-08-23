@@ -21,6 +21,7 @@
     "useDefineForClassFields": false,
     "lib": [
       "ES2022",
+      "ES2022.sharedmemory",
       "dom"
     ]
   },
@@ -34,5 +35,6 @@
   "references": [
     { "path": "./tsconfig.app.json" },
     { "path": "./tsconfig.spec.json" },
+    { "path": "./tsconfig.server.json" }
   ]
 }

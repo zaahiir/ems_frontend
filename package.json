@@ -16,7 +16,7 @@
     "build": "ng build",
     "build:ssr": "ng build --configuration production",
     "dev:ssr": "ng run coreui-free-angular-admin-template:serve-ssr",
-    "serve:ssr": "node dist/coreui-free-angular-admin-template/server/server.mjs",
+    "serve:ssr": "node dist/ems/server/server.mjs",
     "prerender": "ng run coreui-free-angular-admin-template:prerender",
     "watch": "ng build --watch --configuration development",
     "test": "ng test"

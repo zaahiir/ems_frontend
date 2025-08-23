@@ -134,8 +134,8 @@ npm run prerender
 #### Build Output
 
 After building, you'll have:
-- **Browser bundle**: `dist/coreui-free-angular-admin-template/browser/` (for client-side)
-- **Server bundle**: `dist/coreui-free-angular-admin-template/server/` (for Node.js server)
+- **Browser bundle**: `dist/ems/browser/` (for client-side)
+- **Server bundle**: `dist/ems/server/` (for Node.js server)
 
 The SSR server runs on port 4000 by default (configurable via PORT environment variable).
 

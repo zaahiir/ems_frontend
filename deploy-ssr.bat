@@ -13,8 +13,8 @@ npm run build:ssr
 
 echo.
 echo SSR build completed!
-echo Browser bundle: dist\coreui-free-angular-admin-template\browser
-echo Server bundle: dist\coreui-free-angular-admin-template\server
+echo Browser bundle: dist\ems\browser
+echo Server bundle: dist\ems\server
 echo.
 echo To run the SSR server:
 echo npm run serve:ssr

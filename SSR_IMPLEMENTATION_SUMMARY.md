@@ -66,7 +66,7 @@ Successfully updated the Angular EMS Frontend project to support Server-Side Ren
 After running `npm run build:ssr`, you get:
 
 ```
-dist/coreui-free-angular-admin-template/
+dist/ems/
 ├── browser/          # Client-side bundle
 │   ├── index.html
 │   ├── main-*.js

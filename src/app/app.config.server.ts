@@ -10,3 +10,4 @@ const serverConfig: ApplicationConfig = {
 };
 
 export { serverConfig as config };
+
